@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kasir Toko - Admin & Smart POS</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- SDK Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+    <header>
+        <h1>KASIR TOKO LEK BIT (ADMIN)</h1>
+        <p>Sistem Kasir dan Smart Pre-Order Management</p>
+    </header>
+
+    <nav>
+        <button onclick="showPage('barang')">Barang</button>
+        <button onclick="showPage('transaksi')">Transaksi</button>
+        <button onclick="showPage('preorder')">Monitoring Pre-Order</button>
+        <button onclick="showPage('riwayat')">Riwayat Transaksi</button>
+    </nav>
+
+    <main>
+        <!-- KELOLA BARANG -->
+        <section id="barang" class="page">
+            <h2>Kelola Barang Toko</h2>
+            <div class="form">
+                <input type="text" id="namaBarang" placeholder="Nama Barang">
+                <input type="number" id="hargaBarang" placeholder="Harga">
+                <input type="number" id="stokBarang" placeholder="Stok">
+                <button onclick="tambahBarang()">Tambah Barang</button>
+            </div>
+            <input type="text" id="cariBarang" placeholder="Cari barang..." oninput="cariBarang()">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nama Barang</th>
+                        <th>Harga</th>
+                        <th>Stok</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelBarang"></tbody>
+            </table>
+        </section>
+
+        <!-- TRANSAKSI -->
+        <section id="transaksi" class="page" style="display:none;">
+            <h2>Transaksi Kasir</h2>
+            <select id="pilihBarang">
+                <option value="">-- Pilih Barang --</option>
+            </select>
+            <input type="number" id="jumlahBarang" value="1" min="1">
+            <button onclick="tambahKeranjang()">Tambah ke Keranjang</button>
+
+            <h3>Keranjang</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Barang</th>
+                        <th>Jumlah</th>
+                        <th>Subtotal</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelKeranjang"></tbody>
+            </table>
+
+            <h3>Total Tagihan: <span id="total">Rp 0</span></h3>
+            <input type="number" id="pembayaran" placeholder="Jumlah pembayaran">
+            <button onclick="bayar()">Bayar & Selesai</button>
+            <h3>Kembalian: <span id="kembalian">Rp 0</span></h3>
+        </section>
+
+        <!-- PRE-ORDER MONITORING -->
+        <section id="preorder" class="page" style="display:none;">
+            <h2>Daftar Pesanan Pre-Order (Pelanggan)</h2>
+            <p><i>Data pesanan yang diisi pelanggan dari web akan otomatis masuk di sini.</i></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pelanggan</th>
+                        <th>Barang</th>
+                        <th>Jumlah</th>
+                        <th>Tanggal Ambil (Prioritas)</th>
+                        <th>Status / Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelPreOrder"></tbody>
+            </table>
+        </section>
+
+        <!-- RIWAYAT -->
+        <section id="riwayat" class="page" style="display:none;">
+            <h2>Riwayat Transaksi Toko</h2>
+            <button onclick="hapusRiwayat()">Hapus Semua Riwayat</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Rincian Barang</th>
+                        <th>Jumlah Item</th>
+                        <th>Total Pembayaran</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelRiwayat"></tbody>
+            </table>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
