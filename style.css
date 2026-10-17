@@ -9,7 +9,6 @@ body {
 }
 
 /* HEADER */
-
 header {
     background-color: #2a322c; 
     color: rgb(200, 194, 194);
@@ -18,7 +17,6 @@ header {
 }
 
 /* NAVIGASI */
-
 nav {
     background-color: white;
     padding: 15px;
@@ -33,10 +31,12 @@ nav button {
     border-radius: 6px;
     cursor: pointer;
     font-size: 14px;
+    background-color: #222;
+    color: white;
 }
 
 nav button:hover {
-    background-color: #eeeeee;
+    background-color: #444;
 }
 
 button {
@@ -50,11 +50,10 @@ button {
 }
 
 button:hover {
-    background-color: #444;
+    opacity: 0.8;
 }
 
 /* HALAMAN */
-
 .page {
     background-color: white;
     margin: 20px auto;
@@ -63,38 +62,22 @@ button:hover {
     border-radius: 8px;
 }
 
-/* INPUT */
+/* INPUT & FORM */
+.form {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
 
-input,
-select {
+input, select {
     padding: 10px;
-    margin: 5px;
+    margin: 5px 0;
     border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 6px;
 }
 
 /* TABLE */
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-th,
-td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: center;
-}
-
-th {
-    background-color: #eee;
-}
-
-h2 {
-    margin-top: 0;
-}
 table {
     width: 100%;
     border-collapse: collapse;
@@ -114,34 +97,9 @@ th {
 tr:hover {
     background-color: #fafafa;
 }
-.form {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 15px;
-}
-
-input, select {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-}
-
-button {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-button:hover {
-    opacity: 0.8;
-}
-.page {
-    padding: 20px;
-}
 
 h2 {
+    margin-top: 0;
     margin-bottom: 20px;
 }
 
