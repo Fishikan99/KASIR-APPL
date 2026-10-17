@@ -5,14 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kasir Toko - Admin & Smart POS</title>
     <link rel="stylesheet" href="style.css">
-    <!-- SDK Firebase CDN -->
+    
+    <!-- SDK Firebase CDN (Required for Realtime Database) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
     <header>
-        <h1>KASIR TOKO CAK AHMAD (ADMIN)</h1>
+        <h1>KASIR TOKO (ADMIN)</h1>
         <p>Sistem Kasir dan Smart Pre-Order Management</p>
     </header>
 
@@ -33,6 +34,7 @@
                 <input type="number" id="stokBarang" placeholder="Stok">
                 <button onclick="tambahBarang()">Tambah Barang</button>
             </div>
+            <br>
             <input type="text" id="cariBarang" placeholder="Cari barang..." oninput="cariBarang()">
             <table>
                 <thead>
@@ -50,11 +52,13 @@
         <!-- TRANSAKSI -->
         <section id="transaksi" class="page" style="display:none;">
             <h2>Transaksi Kasir</h2>
-            <select id="pilihBarang">
-                <option value="">-- Pilih Barang --</option>
-            </select>
-            <input type="number" id="jumlahBarang" value="1" min="1">
-            <button onclick="tambahKeranjang()">Tambah ke Keranjang</button>
+            <div class="form">
+                <select id="pilihBarang">
+                    <option value="">-- Pilih Barang --</option>
+                </select>
+                <input type="number" id="jumlahBarang" value="1" min="1">
+                <button onclick="tambahKeranjang()">Tambah ke Keranjang</button>
+            </div>
 
             <h3>Keranjang</h3>
             <table>
@@ -70,15 +74,17 @@
             </table>
 
             <h3>Total Tagihan: <span id="total">Rp 0</span></h3>
-            <input type="number" id="pembayaran" placeholder="Jumlah pembayaran">
-            <button onclick="bayar()">Bayar & Selesai</button>
+            <div class="form">
+                <input type="number" id="pembayaran" placeholder="Jumlah pembayaran">
+                <button onclick="bayar()">Bayar & Selesai</button>
+            </div>
             <h3>Kembalian: <span id="kembalian">Rp 0</span></h3>
         </section>
 
         <!-- PRE-ORDER MONITORING -->
         <section id="preorder" class="page" style="display:none;">
             <h2>Daftar Pesanan Pre-Order (Pelanggan)</h2>
-            <p><i>Data pesanan yang diisi pelanggan dari web akan otomatis masuk di sini.</i></p>
+            <p><i>Data pesanan yang diisi pelanggan dari web publik akan otomatis masuk di sini secara real-time.</i></p>
             <table>
                 <thead>
                     <tr>
@@ -96,7 +102,7 @@
         <!-- RIWAYAT -->
         <section id="riwayat" class="page" style="display:none;">
             <h2>Riwayat Transaksi Toko</h2>
-            <button onclick="hapusRiwayat()">Hapus Semua Riwayat</button>
+            <button onclick="hapusRiwayat()" style="background-color: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-bottom: 12px;">Hapus Semua Riwayat</button>
             <table>
                 <thead>
                     <tr>
@@ -111,6 +117,7 @@
         </section>
     </main>
 
+    <!-- File JavaScript Utama -->
     <script src="script.js"></script>
 </body>
 </html>
