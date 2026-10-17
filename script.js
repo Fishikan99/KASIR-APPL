@@ -4,7 +4,7 @@
 const firebaseConfig = {
   apiKey: "AIzaSyAVMio8Mshs6dV8SFQCijC7LNbf6rr3VX8",
   authDomain: "kasir-toko-6fbc5.firebaseapp.com",
-  databaseURL: "https://kasir-toko-6fbc5-default-rtdb.firebaseio.com/",
+  databaseURL: "https://kasir-toko-6fbc5-default-rtdb.asia-southeast1.firebasedatabase.app/",
   projectId: "kasir-toko-6fbc5",
   storageBucket: "kasir-toko-6fbc5.firebasestorage.app",
   messagingSenderId: "253111727359",
@@ -46,7 +46,7 @@ dbBarang.on("value", snapshot => {
     updateSelectBarang();
 });
 
-// Realtime Listener Data Pre-Order (Mendengar input pesanan dari pelanggan)
+// Realtime Listener Data Pre-Order
 dbPreorder.on("value", snapshot => {
     const data = snapshot.val();
     preorder = [];
@@ -70,7 +70,6 @@ dbRiwayat.on("value", snapshot => {
     tampilkanRiwayat();
 });
 
-
 // ===============================
 // HELPER FORMAT RUPIAH & PAGE NAVIGATION
 // ===============================
@@ -86,7 +85,6 @@ function showPage(pageId) {
     if (targetPage) targetPage.style.display = "block";
 }
 
-
 // ===============================
 // KELOLA BARANG (ADMIN)
 // ===============================
@@ -96,8 +94,8 @@ function tambahBarang() {
     const harga = Number(document.getElementById("hargaBarang").value);
     const stok = Number(document.getElementById("stokBarang").value);
 
-    if (nama === "" || harga <= 0 || stok < 0) {
-        alert("Data barang belum lengkap!");
+    if (nama === "" || isNaN(harga) || harga <= 0 || isNaN(stok) || stok < 0) {
+        alert("Data barang belum lengkap atau format angka salah!");
         return;
     }
 
@@ -106,12 +104,12 @@ function tambahBarang() {
         nama: nama,
         harga: harga,
         stok: stok
+    }).then(() => {
+        document.getElementById("namaBarang").value = "";
+        document.getElementById("hargaBarang").value = "";
+        document.getElementById("stokBarang").value = "";
+        alert("Barang berhasil ditambahkan!");
     });
-
-    document.getElementById("namaBarang").value = "";
-    document.getElementById("hargaBarang").value = "";
-    document.getElementById("stokBarang").value = "";
-    alert("Barang berhasil ditambahkan!");
 }
 
 function tampilkanBarang() {
@@ -127,7 +125,7 @@ function tampilkanBarang() {
                 <td>${item.stok}</td>
                 <td>
                     <button onclick="editBarang('${item.idKey}')">Edit</button>
-                    <button onclick="hapusBarang('${item.idKey}')">Hapus</button>
+                    <button onclick="hapusBarang('${item.idKey}')" style="background-color: #dc3545; color: white;">Hapus</button>
                 </td>
             </tr>
         `;
@@ -178,13 +176,12 @@ function cariBarang() {
                 <td>${item.stok}</td>
                 <td>
                     <button onclick="editBarang('${item.idKey}')">Edit</button>
-                    <button onclick="hapusBarang('${item.idKey}')">Hapus</button>
+                    <button onclick="hapusBarang('${item.idKey}')" style="background-color: #dc3545; color: white;">Hapus</button>
                 </td>
             </tr>
         `;
     });
 }
-
 
 // ===============================
 // TRANSAKSI KASIR & SMART DISCOUNT
@@ -196,11 +193,13 @@ function updateSelectBarang() {
 
     select.innerHTML = `<option value="">-- Pilih Barang --</option>`;
     barang.forEach(item => {
-        select.innerHTML += `
-            <option value="${item.idKey}">
-                ${item.nama} - ${formatRupiah(item.harga)} (Stok: ${item.stok})
-            </option>
-        `;
+        if (item.stok > 0) {
+            select.innerHTML += `
+                <option value="${item.idKey}">
+                    ${item.nama} - ${formatRupiah(item.harga)} (Stok: ${item.stok})
+                </option>
+            `;
+        }
     });
 }
 
@@ -250,7 +249,7 @@ function tampilkanKeranjang() {
                 <td>${item.nama}</td>
                 <td>${item.jumlah}</td>
                 <td>${formatRupiah(item.harga * item.jumlah)}</td>
-                <td><button onclick="hapusKeranjang(${index})">Hapus</button></td>
+                <td><button onclick="hapusKeranjang(${index})" style="background-color: #dc3545; color: white;">Hapus</button></td>
             </tr>
         `;
     });
@@ -310,12 +309,10 @@ function bayar() {
     document.getElementById("pembayaran").value = "";
 }
 
-
 // ===============================
 // PRE-ORDER ONLINE (PELANGGAN & SMART PO)
 // ===============================
 
-// ESTIMASI TANGGAL OTOMATIS
 function estimasiTanggalPO() {
     const jumlah = Number(document.getElementById("jumlahPreOrder").value) || 1;
     const today = new Date();
@@ -332,7 +329,6 @@ function estimasiTanggalPO() {
     alert(`[Smart Estimasi PO]\nEstimasi selesai: ${estimasiHari} hari dari sekarang berdasarkan antrean (${poMenunggu} PO aktif).`);
 }
 
-// SIMPAN PRE-ORDER DARI PELANGGAN
 function tambahPreOrderPelanggan() {
     const pelanggan = document.getElementById("namaPelanggan").value.trim();
     const barangPO = document.getElementById("barangPreOrder").value.trim();
@@ -352,7 +348,7 @@ function tambahPreOrderPelanggan() {
         return;
     }
 
-    // SIMPAN KE FIREBASE (Realtime)
+    // SIMPAN KE FIREBASE
     dbPreorder.push({
         pelanggan: pelanggan,
         barang: barangPO,
@@ -360,24 +356,21 @@ function tambahPreOrderPelanggan() {
         tanggal: tanggal,
         status: "Menunggu",
         waktuInput: new Date().toLocaleString("id-ID")
+    }).then(() => {
+        document.getElementById("namaPelanggan").value = "";
+        document.getElementById("barangPreOrder").value = "";
+        document.getElementById("jumlahPreOrder").value = 1;
+        document.getElementById("tanggalAmbil").value = "";
+        alert("Terima kasih! Pesanan Pre-Order Anda berhasil dikirim ke Kasir Toko.");
     });
-
-    document.getElementById("namaPelanggan").value = "";
-    document.getElementById("barangPreOrder").value = "";
-    document.getElementById("jumlahPreOrder").value = 1;
-    document.getElementById("tanggalAmbil").value = "";
-
-    alert("Terima kasih! Pesanan Pre-Order Anda berhasil dikirim ke Kasir Toko.");
 }
 
-// TAMPILKAN DAFTAR PRE-ORDER
 function tampilkanPreOrder() {
     const tbody = document.getElementById("tabelPreOrder");
     if (!tbody) return;
 
     tbody.innerHTML = "";
 
-    // Sort berdasarkan tanggal paling dekat (Prioritas)
     const preorderSorted = [...preorder].sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
 
     preorderSorted.forEach(item => {
@@ -393,7 +386,7 @@ function tampilkanPreOrder() {
                         <option value="Sudah Tersedia" ${item.status === "Sudah Tersedia" ? "selected" : ""}>Sudah Tersedia</option>
                         <option value="Selesai" ${item.status === "Selesai" ? "selected" : ""}>Selesai</option>
                     </select>
-                    <button onclick="hapusPreOrder('${item.idKey}')">Hapus</button>
+                    <button onclick="hapusPreOrder('${item.idKey}')" style="background-color: #dc3545; color: white;">Hapus</button>
                 </td>
             </tr>
         `;
@@ -408,7 +401,6 @@ function hapusPreOrder(idKey) {
     if (!confirm("Yakin ingin menghapus data Pre-Order ini?")) return;
     dbPreorder.child(idKey).remove();
 }
-
 
 // ===============================
 // RIWAYAT TRANSAKSI
