@@ -99,7 +99,6 @@ function tambahBarang() {
         return;
     }
 
-    // Simpan ke Firebase Database
     dbBarang.push({
         nama: nama,
         harga: harga,
@@ -115,10 +114,10 @@ function tambahBarang() {
 function tampilkanBarang() {
     const tbody = document.getElementById("tabelBarang");
     if (!tbody) return;
-    tbody.innerHTML = "";
 
+    let html = "";
     barang.forEach(item => {
-        tbody.innerHTML += `
+        html += `
             <tr>
                 <td>${item.nama}</td>
                 <td>${formatRupiah(item.harga)}</td>
@@ -130,6 +129,7 @@ function tampilkanBarang() {
             </tr>
         `;
     });
+    tbody.innerHTML = html;
 }
 
 function editBarang(idKey) {
@@ -167,9 +167,9 @@ function cariBarang() {
     const tbody = document.getElementById("tabelBarang");
     if (!tbody) return;
 
-    tbody.innerHTML = "";
+    let html = "";
     barang.filter(item => item.nama.toLowerCase().includes(keyword)).forEach(item => {
-        tbody.innerHTML += `
+        html += `
             <tr>
                 <td>${item.nama}</td>
                 <td>${formatRupiah(item.harga)}</td>
@@ -181,6 +181,7 @@ function cariBarang() {
             </tr>
         `;
     });
+    tbody.innerHTML = html;
 }
 
 // ===============================
@@ -191,16 +192,17 @@ function updateSelectBarang() {
     const select = document.getElementById("pilihBarang");
     if (!select) return;
 
-    select.innerHTML = `<option value="">-- Pilih Barang --</option>`;
+    let html = `<option value="">-- Pilih Barang --</option>`;
     barang.forEach(item => {
         if (item.stok > 0) {
-            select.innerHTML += `
+            html += `
                 <option value="${item.idKey}">
                     ${item.nama} - ${formatRupiah(item.harga)} (Stok: ${item.stok})
                 </option>
             `;
         }
     });
+    select.innerHTML = html;
 }
 
 function tambahKeranjang() {
@@ -241,10 +243,10 @@ function hitungTotalDanDiskon() {
 function tampilkanKeranjang() {
     const tbody = document.getElementById("tabelKeranjang");
     if (!tbody) return;
-    tbody.innerHTML = "";
 
+    let html = "";
     keranjang.forEach((item, index) => {
-        tbody.innerHTML += `
+        html += `
             <tr>
                 <td>${item.nama}</td>
                 <td>${item.jumlah}</td>
@@ -253,6 +255,7 @@ function tampilkanKeranjang() {
             </tr>
         `;
     });
+    tbody.innerHTML = html;
 
     const kalkulasi = hitungTotalDanDiskon();
     const totalElement = document.getElementById("total");
@@ -284,7 +287,6 @@ function bayar() {
         return;
     }
 
-    // Update stok di Firebase
     keranjang.forEach(itemKeranjang => {
         const item = barang.find(b => b.idKey === itemKeranjang.idKey);
         if (item) {
@@ -292,7 +294,6 @@ function bayar() {
         }
     });
 
-    // Simpan ke Firebase Riwayat
     dbRiwayat.push({
         tanggal: new Date().toLocaleString("id-ID"),
         barang: keranjang.map(i => i.nama).join(", "),
@@ -348,7 +349,6 @@ function tambahPreOrderPelanggan() {
         return;
     }
 
-    // SIMPAN KE FIREBASE
     dbPreorder.push({
         pelanggan: pelanggan,
         barang: barangPO,
@@ -369,12 +369,11 @@ function tampilkanPreOrder() {
     const tbody = document.getElementById("tabelPreOrder");
     if (!tbody) return;
 
-    tbody.innerHTML = "";
-
+    let html = "";
     const preorderSorted = [...preorder].sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
 
     preorderSorted.forEach(item => {
-        tbody.innerHTML += `
+        html += `
             <tr>
                 <td>${item.pelanggan}</td>
                 <td>${item.barang}</td>
@@ -391,6 +390,7 @@ function tampilkanPreOrder() {
             </tr>
         `;
     });
+    tbody.innerHTML = html;
 }
 
 function ubahStatus(idKey, statusBaru) {
@@ -410,9 +410,9 @@ function tampilkanRiwayat() {
     const tbody = document.getElementById("tabelRiwayat");
     if (!tbody) return;
 
-    tbody.innerHTML = "";
+    let html = "";
     riwayat.forEach(item => {
-        tbody.innerHTML += `
+        html += `
             <tr>
                 <td>${item.tanggal}</td>
                 <td>${item.barang || "-"}</td>
@@ -421,6 +421,7 @@ function tampilkanRiwayat() {
             </tr>
         `;
     });
+    tbody.innerHTML = html;
 }
 
 function hapusRiwayat() {
