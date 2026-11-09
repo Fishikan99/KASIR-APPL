@@ -23,7 +23,7 @@ const dbBarang = db.ref("barang");
 const dbPreorder = db.ref("preorder");
 const dbRiwayat = db.ref("riwayat");
 
-// Data Lokal Sementara di Memori
+// Data Lokal Sementara di Memori (Cache/Sync)
 let barang = [];
 let keranjang = [];
 let preorder = [];
@@ -348,6 +348,21 @@ function tambahPreOrderPelanggan() {
         alert("Tanggal pengambilan tidak boleh hari yang sudah lewat!");
         return;
     }
+
+    // =========================================================
+    // [FR-09] SMART PO STOCK CHECK & ALERT
+    // =========================================================
+    const itemDitemukan = barang.find(b => b.nama.toLowerCase() === barangPO.toLowerCase());
+
+    if (!itemDitemukan) {
+        alert(`[Smart Alert] Barang "${barangPO}" belum terdaftar di stok toko.\nPesanan tetap dicatat & memerlukan pengadaan/restok baru!`);
+    } else if (itemDitemukan.stok < jumlah) {
+        const kekurangan = jumlah - itemDitemukan.stok;
+        alert(`[Smart Alert] Stok toko tidak mencukupi!\nStok toko: ${itemDitemukan.stok}\nJumlah PO: ${jumlah}\nKekurangan: ${kekurangan} item (Membutuhkan restok).`);
+    } else {
+        alert(`[Smart Alert] Stok toko tersedia! (${itemDitemukan.stok} unit siap untuk dialokasikan).`);
+    }
+    // =========================================================
 
     dbPreorder.push({
         pelanggan: pelanggan,
