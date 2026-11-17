@@ -12,12 +12,26 @@
 </head>
 <body>
 
+    <!-- MODAL LOGIN PIN AMAN (TANPA BOCORAN PIN & TERSEMBUNYI) -->
+    <div id="loginModal" class="modal-overlay">
+        <div class="modal-box">
+            <h2 style="margin-top: 0;">Verifikasi Akses KasirPO</h2>
+            <p style="font-size: 14px; color: #555;">Masukkan PIN otorisasi akun Anda:</p>
+            <input type="password" id="inputPinLogin" placeholder="••••" maxlength="8" 
+                   onkeypress="if(event.key === 'Enter') prosesLogin()"
+                   style="width: 100%; text-align: center; font-size: 20px; letter-spacing: 6px; margin-bottom: 14px;">
+            <button onclick="prosesLogin()" style="width: 100%; background-color: #28a745; padding: 12px; font-weight: bold; font-size: 15px;">Masuk ke Sistem</button>
+            <p id="loginError" style="color: #dc3545; font-size: 13px; margin-top: 10px; display: none;"></p>
+        </div>
+    </div>
+
     <header>
         <h1>KASIR TOKO (ADMIN & POS)</h1>
         <p>Sistem Kasir dan Smart Pre-Order Management</p>
         <div class="role-bar">
-            <span>Login sebagai: <b id="roleAktif" style="color: #ffd700;">Memuat...</b></span>
-            <button onclick="gantiAkun()" style="margin-left: 10px; padding: 5px 12px; font-size: 12px; background-color: #007bff;">Ganti Akun / PIN</button>
+            <span>Login sebagai: <b id="roleAktif" style="color: #ffd700;">BELUM LOGIN</b></span>
+            <button id="btnUbahPin" onclick="ubahPinPemilik()" style="display: none; margin-left: 10px; padding: 5px 12px; font-size: 12px; background-color: #ffc107; color: #000; font-weight: bold;">Ubah PIN</button>
+            <button onclick="gantiAkun()" style="margin-left: 6px; padding: 5px 12px; font-size: 12px; background-color: #007bff;">Ganti Akun</button>
         </div>
     </header>
 
