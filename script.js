@@ -30,6 +30,57 @@ let preorder = [];
 let riwayat = [];
 
 // ===============================
+// SISTEM KEAMANAN & HAK AKSES (RBAC)
+// ===============================
+let currentRole = sessionStorage.getItem("kasirpo_role") || "";
+
+const PIN_PEMILIK = "1234"; // PIN khusus Pemilik
+const PIN_KASIR = "0000";   // PIN khusus Kasir
+
+function cekLogin() {
+    // Hanya jalankan verifikasi login pada halaman internal (index.html)
+    if (!document.getElementById("roleAktif")) return;
+
+    while (currentRole !== "Pemilik" && currentRole !== "Kasir") {
+        const inputPin = prompt(
+            "=== VERIFIKASI AKSES KASIRPO ===\n" +
+            "Masukkan PIN Akses:\n" +
+            "- PIN Pemilik (1234) : Hak Akses Penuh & Kunci PO\n" +
+            "- PIN Kasir (0000)   : Hak Akses Operasional Terbatas"
+        );
+
+        if (inputPin === PIN_PEMILIK) {
+            currentRole = "Pemilik";
+        } else if (inputPin === PIN_KASIR) {
+            currentRole = "Kasir";
+        } else {
+            alert("PIN salah! Silakan masukkan PIN Pemilik atau Kasir yang valid.");
+        }
+    }
+
+    sessionStorage.setItem("kasirpo_role", currentRole);
+    document.getElementById("roleAktif").innerText = currentRole.toUpperCase();
+    perbaruiTampilanHakAkses();
+}
+
+function perbaruiTampilanHakAkses() {
+    const btnHapusRiwayat = document.getElementById("btnHapusRiwayat");
+    if (btnHapusRiwayat) {
+        btnHapusRiwayat.style.display = (currentRole === "Pemilik") ? "inline-block" : "none";
+    }
+    tampilkanBarang();
+    tampilkanPreOrder();
+}
+
+function gantiAkun() {
+    sessionStorage.removeItem("kasirpo_role");
+    currentRole = "";
+    cekLogin();
+}
+
+window.addEventListener("DOMContentLoaded", cekLogin);
+
+// ===============================
 // SYNC REALTIME FIREBASE KE APLIKASI
 // ===============================
 
@@ -86,7 +137,7 @@ function showPage(pageId) {
 }
 
 // ===============================
-// KELOLA BARANG (ADMIN)
+// KELOLA BARANG (ADMIN / PEMILIK)
 // ===============================
 
 function tambahBarang() {
@@ -115,6 +166,9 @@ function tampilkanBarang() {
     const tbody = document.getElementById("tabelBarang");
     if (!tbody) return;
 
+    const disableHapusBarang = (currentRole === "Kasir") ? "disabled" : "";
+    const warnaHapusBarang = (currentRole === "Kasir") ? "#999" : "#dc3545";
+
     let html = "";
     barang.forEach(item => {
         html += `
@@ -124,7 +178,7 @@ function tampilkanBarang() {
                 <td>${item.stok}</td>
                 <td>
                     <button onclick="editBarang('${item.idKey}')">Edit</button>
-                    <button onclick="hapusBarang('${item.idKey}')" style="background-color: #dc3545; color: white;">Hapus</button>
+                    <button onclick="hapusBarang('${item.idKey}')" style="background-color: ${warnaHapusBarang}; color: white;" ${disableHapusBarang}>Hapus</button>
                 </td>
             </tr>
         `;
@@ -157,6 +211,10 @@ function editBarang(idKey) {
 }
 
 function hapusBarang(idKey) {
+    if (currentRole !== "Pemilik") {
+        alert("Akses Ditolak! Hanya Pemilik yang dapat menghapus master barang.");
+        return;
+    }
     if (!confirm("Yakin ingin menghapus barang ini?")) return;
     dbBarang.child(idKey).remove();
     alert("Barang berhasil dihapus!");
@@ -167,6 +225,9 @@ function cariBarang() {
     const tbody = document.getElementById("tabelBarang");
     if (!tbody) return;
 
+    const disableHapusBarang = (currentRole === "Kasir") ? "disabled" : "";
+    const warnaHapusBarang = (currentRole === "Kasir") ? "#999" : "#dc3545";
+
     let html = "";
     barang.filter(item => item.nama.toLowerCase().includes(keyword)).forEach(item => {
         html += `
@@ -176,7 +237,7 @@ function cariBarang() {
                 <td>${item.stok}</td>
                 <td>
                     <button onclick="editBarang('${item.idKey}')">Edit</button>
-                    <button onclick="hapusBarang('${item.idKey}')" style="background-color: #dc3545; color: white;">Hapus</button>
+                    <button onclick="hapusBarang('${item.idKey}')" style="background-color: ${warnaHapusBarang}; color: white;" ${disableHapusBarang}>Hapus</button>
                 </td>
             </tr>
         `;
@@ -298,7 +359,8 @@ function bayar() {
         tanggal: new Date().toLocaleString("id-ID"),
         barang: keranjang.map(i => i.nama).join(", "),
         jumlah: keranjang.reduce((tot, i) => tot + i.jumlah, 0),
-        total: kalkulasi.totalAkhir
+        total: kalkulasi.totalAkhir,
+        kasir: currentRole || "Kasir"
     });
 
     const kembalian = pembayaran - kalkulasi.totalAkhir;
@@ -349,9 +411,7 @@ function tambahPreOrderPelanggan() {
         return;
     }
 
-    // =========================================================
     // [FR-09] SMART PO STOCK CHECK & ALERT
-    // =========================================================
     const itemDitemukan = barang.find(b => b.nama.toLowerCase() === barangPO.toLowerCase());
 
     if (!itemDitemukan) {
@@ -362,7 +422,6 @@ function tambahPreOrderPelanggan() {
     } else {
         alert(`[Smart Alert] Stok toko tersedia! (${itemDitemukan.stok} unit siap untuk dialokasikan).`);
     }
-    // =========================================================
 
     dbPreorder.push({
         pelanggan: pelanggan,
@@ -370,7 +429,9 @@ function tambahPreOrderPelanggan() {
         jumlah: jumlah,
         tanggal: tanggal,
         status: "Menunggu",
-        waktuInput: new Date().toLocaleString("id-ID")
+        waktuInput: new Date().toLocaleString("id-ID"),
+        lockedByOwner: false,
+        lastEditedBy: "Pelanggan"
     }).then(() => {
         document.getElementById("namaPelanggan").value = "";
         document.getElementById("barangPreOrder").value = "";
@@ -388,19 +449,30 @@ function tampilkanPreOrder() {
     const preorderSorted = [...preorder].sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
 
     preorderSorted.forEach(item => {
+        const isLockedByOwner = item.lockedByOwner === true;
+        const disableUntukKasir = (currentRole === "Kasir" && isLockedByOwner) ? "disabled" : "";
+
+        const badgeLock = isLockedByOwner
+            ? `<br><span class="badge-lock">🔒 Dikunci Pemilik</span>`
+            : (item.lastEditedBy ? `<br><small style="color: #666;">Terakhir diubah: ${item.lastEditedBy}</small>` : "");
+
         html += `
             <tr>
                 <td>${item.pelanggan}</td>
                 <td>${item.barang}</td>
                 <td>${item.jumlah}</td>
-                <td><b>${item.tanggal}</b></td>
+                <td><b>${item.tanggal}</b>${badgeLock}</td>
                 <td>
-                    <select onchange="ubahStatus('${item.idKey}', this.value)">
+                    <select onchange="ubahStatus('${item.idKey}', this.value)" ${disableUntukKasir}>
                         <option value="Menunggu" ${item.status === "Menunggu" ? "selected" : ""}>Menunggu</option>
                         <option value="Sudah Tersedia" ${item.status === "Sudah Tersedia" ? "selected" : ""}>Sudah Tersedia</option>
                         <option value="Selesai" ${item.status === "Selesai" ? "selected" : ""}>Selesai</option>
                     </select>
-                    <button onclick="hapusPreOrder('${item.idKey}')" style="background-color: #dc3545; color: white;">Hapus</button>
+                    <button onclick="hapusPreOrder('${item.idKey}')" 
+                            style="background-color: ${disableUntukKasir ? '#999' : '#dc3545'}; color: white;" 
+                            ${disableUntukKasir}>
+                        Hapus
+                    </button>
                 </td>
             </tr>
         `;
@@ -409,10 +481,35 @@ function tampilkanPreOrder() {
 }
 
 function ubahStatus(idKey, statusBaru) {
-    dbPreorder.child(idKey).update({ status: statusBaru });
+    const item = preorder.find(p => p.idKey === idKey);
+    if (!item) return;
+
+    // Validasi keamanan: Kasir dilarang mengubah PO yang sudah dikunci Pemilik
+    if (currentRole === "Kasir" && item.lockedByOwner === true) {
+        alert("Akses Ditolak! Status pesanan ini sudah ditetapkan dan dikunci oleh Pemilik.");
+        tampilkanPreOrder();
+        return;
+    }
+
+    // Jika diubah oleh Pemilik, otomatis aktifkan kunci status
+    const kunciStatus = (currentRole === "Pemilik") ? true : false;
+
+    dbPreorder.child(idKey).update({
+        status: statusBaru,
+        lastEditedBy: currentRole,
+        lockedByOwner: kunciStatus
+    });
 }
 
 function hapusPreOrder(idKey) {
+    const item = preorder.find(p => p.idKey === idKey);
+    if (!item) return;
+
+    if (currentRole === "Kasir" && item.lockedByOwner === true) {
+        alert("Akses Ditolak! Pesanan yang dikunci Pemilik tidak dapat dihapus oleh Kasir.");
+        return;
+    }
+
     if (!confirm("Yakin ingin menghapus data Pre-Order ini?")) return;
     dbPreorder.child(idKey).remove();
 }
@@ -440,6 +537,10 @@ function tampilkanRiwayat() {
 }
 
 function hapusRiwayat() {
+    if (currentRole !== "Pemilik") {
+        alert("Akses Ditolak! Hanya Pemilik yang berwenang menghapus riwayat transaksi.");
+        return;
+    }
     if (riwayat.length === 0) return;
     if (!confirm("Hapus seluruh data riwayat transaksi?")) return;
     dbRiwayat.remove();
