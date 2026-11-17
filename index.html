@@ -13,8 +13,12 @@
 <body>
 
     <header>
-        <h1>KASIR TOKO (ADMIN)</h1>
+        <h1>KASIR TOKO (ADMIN & POS)</h1>
         <p>Sistem Kasir dan Smart Pre-Order Management</p>
+        <div class="role-bar">
+            <span>Login sebagai: <b id="roleAktif" style="color: #ffd700;">Memuat...</b></span>
+            <button onclick="gantiAkun()" style="margin-left: 10px; padding: 5px 12px; font-size: 12px; background-color: #007bff;">Ganti Akun / PIN</button>
+        </div>
     </header>
 
     <nav>
@@ -84,7 +88,7 @@
         <!-- PRE-ORDER MONITORING -->
         <section id="preorder" class="page" style="display:none;">
             <h2>Daftar Pesanan Pre-Order (Pelanggan)</h2>
-            <p><i>Data pesanan yang diisi pelanggan dari web publik akan otomatis masuk di sini secara real-time.</i></p>
+            <p><i>Data pesanan yang diisi pelanggan dari web publik akan otomatis masuk di sini secara real-time. Pesanan yang diubah oleh Pemilik otomatis terkunci dari perubahan Kasir.</i></p>
             <table>
                 <thead>
                     <tr>
@@ -102,7 +106,7 @@
         <!-- RIWAYAT -->
         <section id="riwayat" class="page" style="display:none;">
             <h2>Riwayat Transaksi Toko</h2>
-            <button onclick="hapusRiwayat()" style="background-color: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-bottom: 12px;">Hapus Semua Riwayat</button>
+            <button id="btnHapusRiwayat" onclick="hapusRiwayat()" style="background-color: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-bottom: 12px;">Hapus Semua Riwayat</button>
             <table>
                 <thead>
                     <tr>
