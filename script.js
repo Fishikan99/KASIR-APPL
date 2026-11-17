@@ -231,11 +231,15 @@ function tampilkanBarang() {
     const tbody = document.getElementById("tabelBarang");
     if (!tbody) return;
 
-    const disableHapusBarang = (currentRole === "Kasir") ? "disabled" : "";
-    const warnaHapusBarang = (currentRole === "Kasir") ? "#999" : "#dc3545";
+    const isPemilik = (currentRole === "Pemilik");
 
     let html = "";
     barang.forEach(item => {
+        // Tombol Hapus Barang hanya muncul untuk Pemilik
+        const tombolHapusHTML = isPemilik
+            ? `<button onclick="hapusBarang('${item.idKey}')" style="background-color: #dc3545; color: white;">Hapus</button>`
+            : "";
+
         html += `
             <tr>
                 <td>${item.nama}</td>
@@ -243,7 +247,7 @@ function tampilkanBarang() {
                 <td>${item.stok}</td>
                 <td>
                     <button onclick="editBarang('${item.idKey}')">Edit</button>
-                    <button onclick="hapusBarang('${item.idKey}')" style="background-color: ${warnaHapusBarang}; color: white;" ${disableHapusBarang}>Hapus</button>
+                    ${tombolHapusHTML}
                 </td>
             </tr>
         `;
@@ -290,11 +294,14 @@ function cariBarang() {
     const tbody = document.getElementById("tabelBarang");
     if (!tbody) return;
 
-    const disableHapusBarang = (currentRole === "Kasir") ? "disabled" : "";
-    const warnaHapusBarang = (currentRole === "Kasir") ? "#999" : "#dc3545";
+    const isPemilik = (currentRole === "Pemilik");
 
     let html = "";
     barang.filter(item => item.nama.toLowerCase().includes(keyword)).forEach(item => {
+        const tombolHapusHTML = isPemilik
+            ? `<button onclick="hapusBarang('${item.idKey}')" style="background-color: #dc3545; color: white;">Hapus</button>`
+            : "";
+
         html += `
             <tr>
                 <td>${item.nama}</td>
@@ -302,7 +309,7 @@ function cariBarang() {
                 <td>${item.stok}</td>
                 <td>
                     <button onclick="editBarang('${item.idKey}')">Edit</button>
-                    <button onclick="hapusBarang('${item.idKey}')" style="background-color: ${warnaHapusBarang}; color: white;" ${disableHapusBarang}>Hapus</button>
+                    ${tombolHapusHTML}
                 </td>
             </tr>
         `;
@@ -510,16 +517,24 @@ function tampilkanPreOrder() {
     const tbody = document.getElementById("tabelPreOrder");
     if (!tbody) return;
 
+    const isPemilik = (currentRole === "Pemilik");
+
     let html = "";
     const preorderSorted = [...preorder].sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
 
     preorderSorted.forEach(item => {
         const isLockedByOwner = item.lockedByOwner === true;
-        const disableUntukKasir = (currentRole === "Kasir" && isLockedByOwner) ? "disabled" : "";
+        // Kasir tidak bisa mengubah status jika sudah dikunci Pemilik
+        const disableStatusKasir = (!isPemilik && isLockedByOwner) ? "disabled" : "";
 
         const badgeLock = isLockedByOwner
             ? `<br><span class="badge-lock">🔒 Dikunci Pemilik</span>`
             : (item.lastEditedBy ? `<br><small style="color: #666;">Terakhir diubah: ${item.lastEditedBy}</small>` : "");
+
+        // Tombol Hapus HANYA ditampilkan jika login sebagai Pemilik
+        const tombolHapusHTML = isPemilik
+            ? `<button onclick="hapusPreOrder('${item.idKey}')" style="background-color: #dc3545; color: white;">Hapus</button>`
+            : "";
 
         html += `
             <tr>
@@ -528,16 +543,13 @@ function tampilkanPreOrder() {
                 <td>${item.jumlah}</td>
                 <td><b>${item.tanggal}</b>${badgeLock}</td>
                 <td>
-                    <select onchange="ubahStatus('${item.idKey}', this.value)" ${disableUntukKasir}>
+                    <select onchange="ubahStatus('${item.idKey}', this.value)" ${disableStatusKasir}>
                         <option value="Menunggu" ${item.status === "Menunggu" ? "selected" : ""}>Menunggu</option>
                         <option value="Sudah Tersedia" ${item.status === "Sudah Tersedia" ? "selected" : ""}>Sudah Tersedia</option>
                         <option value="Selesai" ${item.status === "Selesai" ? "selected" : ""}>Selesai</option>
+                        <option value="Dibatalkan" ${item.status === "Dibatalkan" ? "selected" : ""}>Dibatalkan</option>
                     </select>
-                    <button onclick="hapusPreOrder('${item.idKey}')" 
-                            style="background-color: ${disableUntukKasir ? '#999' : '#dc3545'}; color: white;" 
-                            ${disableUntukKasir}>
-                        Hapus
-                    </button>
+                    ${tombolHapusHTML}
                 </td>
             </tr>
         `;
@@ -567,15 +579,13 @@ function ubahStatus(idKey, statusBaru) {
 }
 
 function hapusPreOrder(idKey) {
-    const item = preorder.find(p => p.idKey === idKey);
-    if (!item) return;
-
-    if (currentRole === "Kasir" && item.lockedByOwner === true) {
-        alert("Akses Ditolak! Pesanan yang dikunci Pemilik tidak dapat dihapus oleh Kasir.");
+    // Validasi ketat: Hanya Pemilik yang boleh menghapus data PO dari database
+    if (currentRole !== "Pemilik") {
+        alert("Akses Ditolak! Hanya Pemilik yang berwenang menghapus data pesanan Pre-Order.");
         return;
     }
 
-    if (!confirm("Yakin ingin menghapus data Pre-Order ini?")) return;
+    if (!confirm("Yakin ingin menghapus data Pre-Order ini secara permanen?")) return;
     dbPreorder.child(idKey).remove();
 }
 
