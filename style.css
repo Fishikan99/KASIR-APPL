@@ -16,6 +16,15 @@ header {
     text-align: center;
 }
 
+.role-bar {
+    margin-top: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 14px;
+    border-radius: 6px;
+    display: inline-block;
+    font-size: 14px;
+}
+
 /* NAVIGASI */
 nav {
     background-color: white;
@@ -47,6 +56,11 @@ button {
 
 nav button:hover, button:hover {
     opacity: 0.8;
+}
+
+button:disabled, select:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 /* HALAMAN */
@@ -92,6 +106,18 @@ th {
 
 tr:hover {
     background-color: #fafafa;
+}
+
+.badge-lock {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #b52b27;
+    background-color: #fdecea;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
 }
 
 h2 {
