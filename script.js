@@ -22,6 +22,7 @@ const db = firebase.database();
 const dbBarang = db.ref("barang");
 const dbPreorder = db.ref("preorder");
 const dbRiwayat = db.ref("riwayat");
+const dbPengaturan = db.ref("pengaturan");
 
 // Data Lokal Sementara di Memori (Cache/Sync)
 let barang = [];
@@ -34,42 +35,106 @@ let riwayat = [];
 // ===============================
 let currentRole = sessionStorage.getItem("kasirpo_role") || "";
 
-const PIN_PEMILIK = "1234"; // PIN khusus Pemilik
-const PIN_KASIR = "0000";   // PIN khusus Kasir
+// PIN default awal (otomatis tersimpan ke Firebase dan bisa diubah Pemilik)
+let pinPemilikAktif = "1234";
+let pinKasirAktif = "0000";
+
+// Sinkronisasi PIN dari Firebase agar Pemilik bisa mengganti PIN kapan saja
+dbPengaturan.on("value", snapshot => {
+    const data = snapshot.val();
+    if (data) {
+        if (data.pinPemilik) pinPemilikAktif = String(data.pinPemilik);
+        if (data.pinKasir) pinKasirAktif = String(data.pinKasir);
+    } else {
+        // Inisialisasi awal ke Firebase jika belum ada
+        dbPengaturan.set({
+            pinPemilik: pinPemilikAktif,
+            pinKasir: pinKasirAktif
+        });
+    }
+});
 
 function cekLogin() {
-    // Hanya jalankan verifikasi login pada halaman internal (index.html)
-    if (!document.getElementById("roleAktif")) return;
+    const modal = document.getElementById("loginModal");
+    const roleLabel = document.getElementById("roleAktif");
+    if (!roleLabel) return;
 
-    while (currentRole !== "Pemilik" && currentRole !== "Kasir") {
-        const inputPin = prompt(
-            "=== VERIFIKASI AKSES KASIRPO ===\n" +
-            "Masukkan PIN Akses:\n" +
-            "- PIN Pemilik (1234) : Hak Akses Penuh & Kunci PO\n" +
-            "- PIN Kasir (0000)   : Hak Akses Operasional Terbatas"
-        );
+    if (currentRole === "Pemilik" || currentRole === "Kasir") {
+        if (modal) modal.style.display = "none";
+        roleLabel.innerText = currentRole.toUpperCase();
+        perbaruiTampilanHakAkses();
+    } else {
+        if (modal) modal.style.display = "flex";
+        roleLabel.innerText = "BELUM LOGIN";
+    }
+}
 
-        if (inputPin === PIN_PEMILIK) {
-            currentRole = "Pemilik";
-        } else if (inputPin === PIN_KASIR) {
-            currentRole = "Kasir";
-        } else {
-            alert("PIN salah! Silakan masukkan PIN Pemilik atau Kasir yang valid.");
+function prosesLogin() {
+    const inputPin = document.getElementById("inputPinLogin").value.trim();
+    const errorEl = document.getElementById("loginError");
+
+    if (inputPin === pinPemilikAktif) {
+        currentRole = "Pemilik";
+    } else if (inputPin === pinKasirAktif) {
+        currentRole = "Kasir";
+    } else {
+        if (errorEl) {
+            errorEl.innerText = "PIN tidak valid! Silakan coba lagi.";
+            errorEl.style.display = "block";
         }
+        document.getElementById("inputPinLogin").value = "";
+        return;
     }
 
+    if (errorEl) errorEl.style.display = "none";
     sessionStorage.setItem("kasirpo_role", currentRole);
-    document.getElementById("roleAktif").innerText = currentRole.toUpperCase();
-    perbaruiTampilanHakAkses();
+    document.getElementById("inputPinLogin").value = "";
+    cekLogin();
 }
 
 function perbaruiTampilanHakAkses() {
+    const isPemilik = (currentRole === "Pemilik");
+
     const btnHapusRiwayat = document.getElementById("btnHapusRiwayat");
     if (btnHapusRiwayat) {
-        btnHapusRiwayat.style.display = (currentRole === "Pemilik") ? "inline-block" : "none";
+        btnHapusRiwayat.style.display = isPemilik ? "inline-block" : "none";
     }
+
+    const btnUbahPin = document.getElementById("btnUbahPin");
+    if (btnUbahPin) {
+        btnUbahPin.style.display = isPemilik ? "inline-block" : "none";
+    }
+
     tampilkanBarang();
     tampilkanPreOrder();
+}
+
+function ubahPinPemilik() {
+    if (currentRole !== "Pemilik") return;
+
+    const pilihan = prompt(
+        "Pilih PIN yang ingin diubah:\n" +
+        "Ketik 1 untuk mengubah PIN Pemilik\n" +
+        "Ketik 2 untuk mengubah PIN Kasir"
+    );
+
+    if (pilihan === "1") {
+        const pinBaru = prompt("Masukkan PIN Pemilik yang baru (minimal 4 digit):");
+        if (pinBaru && pinBaru.trim().length >= 4 && pinBaru.trim() !== pinKasirAktif) {
+            dbPengaturan.update({ pinPemilik: pinBaru.trim() });
+            alert("PIN Pemilik berhasil diperbarui!");
+        } else {
+            alert("Gagal! PIN minimal 4 karakter dan tidak boleh sama dengan PIN Kasir.");
+        }
+    } else if (pilihan === "2") {
+        const pinBaru = prompt("Masukkan PIN Kasir yang baru (minimal 4 digit):");
+        if (pinBaru && pinBaru.trim().length >= 4 && pinBaru.trim() !== pinPemilikAktif) {
+            dbPengaturan.update({ pinKasir: pinBaru.trim() });
+            alert("PIN Kasir berhasil diperbarui!");
+        } else {
+            alert("Gagal! PIN minimal 4 karakter dan tidak boleh sama dengan PIN Pemilik.");
+        }
+    }
 }
 
 function gantiAkun() {
@@ -78,7 +143,7 @@ function gantiAkun() {
     cekLogin();
 }
 
-window.addEventListener("DOMContentLoaded", cekLogin);
+cekLogin();
 
 // ===============================
 // SYNC REALTIME FIREBASE KE APLIKASI
