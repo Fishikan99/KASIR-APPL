@@ -35,18 +35,15 @@ let riwayat = [];
 // ===============================
 let currentRole = sessionStorage.getItem("kasirpo_role") || "";
 
-// PIN default awal (otomatis tersimpan ke Firebase dan bisa diubah Pemilik)
 let pinPemilikAktif = "1234";
 let pinKasirAktif = "0000";
 
-// Sinkronisasi PIN dari Firebase agar Pemilik bisa mengganti PIN kapan saja
 dbPengaturan.on("value", snapshot => {
     const data = snapshot.val();
     if (data) {
         if (data.pinPemilik) pinPemilikAktif = String(data.pinPemilik);
         if (data.pinKasir) pinKasirAktif = String(data.pinKasir);
     } else {
-        // Inisialisasi awal ke Firebase jika belum ada
         dbPengaturan.set({
             pinPemilik: pinPemilikAktif,
             pinKasir: pinKasirAktif
@@ -149,7 +146,6 @@ cekLogin();
 // SYNC REALTIME FIREBASE KE APLIKASI
 // ===============================
 
-// Realtime Listener Data Barang
 dbBarang.on("value", snapshot => {
     const data = snapshot.val();
     barang = [];
@@ -160,9 +156,9 @@ dbBarang.on("value", snapshot => {
     }
     tampilkanBarang();
     updateSelectBarang();
+    updateSelectBarangPO();
 });
 
-// Realtime Listener Data Pre-Order
 dbPreorder.on("value", snapshot => {
     const data = snapshot.val();
     preorder = [];
@@ -174,7 +170,6 @@ dbPreorder.on("value", snapshot => {
     tampilkanPreOrder();
 });
 
-// Realtime Listener Data Riwayat
 dbRiwayat.on("value", snapshot => {
     const data = snapshot.val();
     riwayat = [];
@@ -190,7 +185,7 @@ dbRiwayat.on("value", snapshot => {
 // HELPER FORMAT RUPIAH & PAGE NAVIGATION
 // ===============================
 function formatRupiah(angka) {
-    return "Rp " + Number(angka).toLocaleString("id-ID");
+    return "Rp " + Number(angka || 0).toLocaleString("id-ID");
 }
 
 function showPage(pageId) {
@@ -235,7 +230,6 @@ function tampilkanBarang() {
 
     let html = "";
     barang.forEach(item => {
-        // Tombol Hapus Barang hanya muncul untuk Pemilik
         const tombolHapusHTML = isPemilik
             ? `<button onclick="hapusBarang('${item.idKey}')" style="background-color: #dc3545; color: white;">Hapus</button>`
             : "";
@@ -445,8 +439,63 @@ function bayar() {
 }
 
 // ===============================
-// PRE-ORDER ONLINE (PELANGGAN & SMART PO)
+// PRE-ORDER ONLINE (PELANGGAN, QRIS DP 50%, DELIVERY & SMART PO)
 // ===============================
+
+function updateSelectBarangPO() {
+    const select = document.getElementById("pilihBarangPO");
+    if (!select) return;
+
+    let html = `<option value="">-- Pilih Produk Katalog / Input Manual --</option>`;
+    barang.forEach(item => {
+        html += `<option value="${item.idKey}">${item.nama} (${formatRupiah(item.harga)})</option>`;
+    });
+    select.innerHTML = html;
+}
+
+function pilihProdukPO() {
+    const select = document.getElementById("pilihBarangPO");
+    if (!select) return;
+
+    const item = barang.find(b => b.idKey === select.value);
+    const inputNama = document.getElementById("barangPreOrder");
+    const inputHarga = document.getElementById("hargaSatuanPO");
+
+    if (item) {
+        inputNama.value = item.nama;
+        inputHarga.value = item.harga;
+    } else {
+        inputNama.value = "";
+        inputHarga.value = "";
+    }
+    hitungRingkasanPO();
+}
+
+function toggleAlamatPO() {
+    const metode = document.getElementById("metodeAmbil").value;
+    const boxAlamat = document.getElementById("boxAlamatPO");
+    if (boxAlamat) {
+        boxAlamat.style.display = (metode === "Antar ke Alamat") ? "block" : "none";
+    }
+}
+
+function hitungRingkasanPO() {
+    const hargaEl = document.getElementById("hargaSatuanPO");
+    const jumlahEl = document.getElementById("jumlahPreOrder");
+    const dpEl = document.getElementById("nominalDP");
+    if (!hargaEl || !jumlahEl) return;
+
+    const harga = Number(hargaEl.value) || 0;
+    const jumlah = Number(jumlahEl.value) || 1;
+    const totalHarga = harga * jumlah;
+    const minDP = Math.ceil(totalHarga * 0.5);
+    const dpDibayar = Number(dpEl.value) || 0;
+    const sisaBayar = Math.max(0, totalHarga - (dpDibayar > 0 ? dpDibayar : minDP));
+
+    document.getElementById("infoTotalPO").innerText = formatRupiah(totalHarga);
+    document.getElementById("infoMinDP").innerText = formatRupiah(minDP);
+    document.getElementById("infoSisaPO").innerText = formatRupiah(sisaBayar);
+}
 
 function estimasiTanggalPO() {
     const jumlah = Number(document.getElementById("jumlahPreOrder").value) || 1;
@@ -467,21 +516,51 @@ function estimasiTanggalPO() {
 function tambahPreOrderPelanggan() {
     const pelanggan = document.getElementById("namaPelanggan").value.trim();
     const barangPO = document.getElementById("barangPreOrder").value.trim();
+    const hargaSatuan = Number(document.getElementById("hargaSatuanPO").value);
     const jumlah = Number(document.getElementById("jumlahPreOrder").value);
+    const metodeAmbil = document.getElementById("metodeAmbil").value;
+    const alamatPO = document.getElementById("alamatPO").value.trim();
     const tanggal = document.getElementById("tanggalAmbil").value;
+    const nominalDP = Number(document.getElementById("nominalDP").value);
+    const pengirimQRIS = document.getElementById("pengirimQRIS").value.trim();
 
     const today = new Date();
     const hariIni = today.getFullYear() + "-" + String(today.getMonth() + 1).padStart(2, "0") + "-" + String(today.getDate()).padStart(2, "0");
 
-    if (pelanggan === "" || barangPO === "" || jumlah <= 0 || tanggal === "") {
-        alert("Mohon lengkapi seluruh form Pre-Order!");
+    if (pelanggan === "" || barangPO === "" || hargaSatuan <= 0 || jumlah <= 0 || tanggal === "") {
+        alert("Mohon lengkapi seluruh data pesanan dan harga barang!");
+        return;
+    }
+
+    if (metodeAmbil === "Antar ke Alamat" && alamatPO === "") {
+        alert("Mohon isi alamat lengkap pengantaran!");
         return;
     }
 
     if (tanggal < hariIni) {
-        alert("Tanggal pengambilan tidak boleh hari yang sudah lewat!");
+        alert("Tanggal pengambilan/pengantaran tidak boleh hari yang sudah lewat!");
         return;
     }
+
+    const totalHarga = hargaSatuan * jumlah;
+    const minDP = Math.ceil(totalHarga * 0.5);
+
+    if (nominalDP < minDP) {
+        alert(`Pembayaran DP minimal 50% (${formatRupiah(minDP)}) wajib dipenuhi sebelum mengirim pesanan!`);
+        return;
+    }
+
+    if (nominalDP > totalHarga) {
+        alert(`Nominal DP tidak boleh melebihi total harga pesanan (${formatRupiah(totalHarga)})!`);
+        return;
+    }
+
+    if (pengirimQRIS === "") {
+        alert("Mohon isi Nama Pengirim / E-Wallet QRIS untuk verifikasi kasir!");
+        return;
+    }
+
+    const sisaBayar = totalHarga - nominalDP;
 
     // [FR-09] SMART PO STOCK CHECK & ALERT
     const itemDitemukan = barang.find(b => b.nama.toLowerCase() === barangPO.toLowerCase());
@@ -498,7 +577,16 @@ function tambahPreOrderPelanggan() {
     dbPreorder.push({
         pelanggan: pelanggan,
         barang: barangPO,
+        hargaSatuan: hargaSatuan,
         jumlah: jumlah,
+        totalHarga: totalHarga,
+        nominalDP: nominalDP,
+        sisaBayar: sisaBayar,
+        pengirimQRIS: pengirimQRIS,
+        dpTerverifikasi: false,
+        statusPembayaran: sisaBayar === 0 ? "Lunas (Menunggu Verifikasi)" : "Menunggu Verifikasi DP",
+        metodeAmbil: metodeAmbil,
+        alamat: metodeAmbil === "Antar ke Alamat" ? alamatPO : "Ambil di Toko",
         tanggal: tanggal,
         status: "Menunggu",
         waktuInput: new Date().toLocaleString("id-ID"),
@@ -506,10 +594,18 @@ function tambahPreOrderPelanggan() {
         lastEditedBy: "Pelanggan"
     }).then(() => {
         document.getElementById("namaPelanggan").value = "";
+        document.getElementById("pilihBarangPO").value = "";
         document.getElementById("barangPreOrder").value = "";
+        document.getElementById("hargaSatuanPO").value = "";
         document.getElementById("jumlahPreOrder").value = 1;
+        document.getElementById("metodeAmbil").value = "Ambil di Toko";
+        toggleAlamatPO();
+        document.getElementById("alamatPO").value = "";
         document.getElementById("tanggalAmbil").value = "";
-        alert("Terima kasih! Pesanan Pre-Order Anda berhasil dikirim ke Kasir Toko.");
+        document.getElementById("nominalDP").value = "";
+        document.getElementById("pengirimQRIS").value = "";
+        hitungRingkasanPO();
+        alert("Terima kasih! Pesanan Pre-Order & Konfirmasi DP Anda berhasil dikirim ke Kasir Toko.");
     });
 }
 
@@ -524,28 +620,57 @@ function tampilkanPreOrder() {
 
     preorderSorted.forEach(item => {
         const isLockedByOwner = item.lockedByOwner === true;
-        // Kasir tidak bisa mengubah status jika sudah dikunci Pemilik
         const disableStatusKasir = (!isPemilik && isLockedByOwner) ? "disabled" : "";
 
         const badgeLock = isLockedByOwner
             ? `<br><span class="badge-lock">🔒 Dikunci Pemilik</span>`
-            : (item.lastEditedBy ? `<br><small style="color: #666;">Terakhir diubah: ${item.lastEditedBy}</small>` : "");
+            : (item.lastEditedBy ? `<br><small style="color: #666;">Diubah: ${item.lastEditedBy}</small>` : "");
 
-        // Tombol Hapus HANYA ditampilkan jika login sebagai Pemilik
+        const infoPengiriman = item.metodeAmbil === "Antar ke Alamat"
+            ? `<br><span style="color:#0056b3; font-size:12px;">🚚 <b>Antar:</b> ${item.alamat}</span>`
+            : `<br><span style="color:#28a745; font-size:12px;">🏪 Ambil di Toko</span>`;
+
+        const totalHarga = item.totalHarga || 0;
+        const nominalDP = item.nominalDP || 0;
+        const sisaBayar = item.sisaBayar !== undefined ? item.sisaBayar : 0;
+
+        let infoKeuanganHTML = `
+            <div style="font-size: 13px; text-align: left;">
+                Total: <b>${formatRupiah(totalHarga)}</b><br>
+                DP QRIS: <b style="color: #28a745;">${formatRupiah(nominalDP)}</b><br>
+                Sisa: <b style="color: ${sisaBayar > 0 ? '#d9534f' : '#28a745'};">${formatRupiah(sisaBayar)}</b><br>
+                <small style="color: #555;">Pengirim: ${item.pengirimQRIS || "-"}</small><br>
+                <span style="display:inline-block; margin-top:3px; padding:2px 6px; border-radius:4px; font-size:11px; background:${sisaBayar === 0 && item.dpTerverifikasi ? '#d4edda' : '#fff3cd'}; color:#333;">
+                    ${item.statusPembayaran || "Belum Ada DP"}
+                </span>
+            </div>
+        `;
+
+        // Tombol Verifikasi DP & Pelunasan Sisa
+        let tombolKeuanganHTML = "";
+        if (!item.dpTerverifikasi && nominalDP > 0) {
+            tombolKeuanganHTML += `<button onclick="verifikasiDP('${item.idKey}')" style="background-color: #17a2b8; font-size: 12px; padding: 6px 10px;">✔ Terima DP (${formatRupiah(nominalDP)})</button><br>`;
+        } else if (item.dpTerverifikasi && sisaBayar > 0) {
+            tombolKeuanganHTML += `<button onclick="lunasiSisaPO('${item.idKey}')" style="background-color: #28a745; font-size: 12px; padding: 6px 10px;">💰 Lunasi Sisa (${formatRupiah(sisaBayar)})</button><br>`;
+        }
+
+        // Tombol Hapus PO hanya muncul untuk Pemilik
         const tombolHapusHTML = isPemilik
-            ? `<button onclick="hapusPreOrder('${item.idKey}')" style="background-color: #dc3545; color: white;">Hapus</button>`
+            ? `<button onclick="hapusPreOrder('${item.idKey}')" style="background-color: #dc3545; color: white; font-size: 12px; padding: 6px 10px;">Hapus</button>`
             : "";
 
         html += `
             <tr>
-                <td>${item.pelanggan}</td>
-                <td>${item.barang}</td>
-                <td>${item.jumlah}</td>
+                <td><b>${item.pelanggan}</b>${infoPengiriman}</td>
+                <td>${item.barang} (${item.jumlah}x)</td>
+                <td>${infoKeuanganHTML}</td>
                 <td><b>${item.tanggal}</b>${badgeLock}</td>
                 <td>
-                    <select onchange="ubahStatus('${item.idKey}', this.value)" ${disableStatusKasir}>
+                    ${tombolKeuanganHTML}
+                    <select onchange="ubahStatus('${item.idKey}', this.value)" ${disableStatusKasir} style="margin-top: 4px;">
                         <option value="Menunggu" ${item.status === "Menunggu" ? "selected" : ""}>Menunggu</option>
                         <option value="Sudah Tersedia" ${item.status === "Sudah Tersedia" ? "selected" : ""}>Sudah Tersedia</option>
+                        <option value="Dalam Pengantaran" ${item.status === "Dalam Pengantaran" ? "selected" : ""}>Dalam Pengantaran</option>
                         <option value="Selesai" ${item.status === "Selesai" ? "selected" : ""}>Selesai</option>
                         <option value="Dibatalkan" ${item.status === "Dibatalkan" ? "selected" : ""}>Dibatalkan</option>
                     </select>
@@ -557,18 +682,70 @@ function tampilkanPreOrder() {
     tbody.innerHTML = html;
 }
 
+function verifikasiDP(idKey) {
+    const item = preorder.find(p => p.idKey === idKey);
+    if (!item) return;
+
+    if (!confirm(`Konfirmasi bahwa DP QRIS sebesar ${formatRupiah(item.nominalDP)} dari ${item.pengirimQRIS} sudah masuk rekening toko?`)) return;
+
+    const statusBayarBaru = (item.sisaBayar === 0) ? "LUNAS (QRIS)" : `DP Diterima (Sisa ${formatRupiah(item.sisaBayar)})`;
+
+    dbPreorder.child(idKey).update({
+        dpTerverifikasi: true,
+        statusPembayaran: statusBayarBaru,
+        lastEditedBy: currentRole
+    });
+
+    // Catat DP ke Riwayat Transaksi Kasir
+    dbRiwayat.push({
+        tanggal: new Date().toLocaleString("id-ID"),
+        barang: `[DP PO] ${item.barang} (${item.pelanggan})`,
+        jumlah: item.jumlah,
+        total: item.nominalDP,
+        kasir: currentRole || "Kasir"
+    });
+
+    alert("DP berhasil diverifikasi dan otomatis masuk ke Riwayat Transaksi!");
+}
+
+function lunasiSisaPO(idKey) {
+    const item = preorder.find(p => p.idKey === idKey);
+    if (!item) return;
+
+    if (!confirm(`Proses pelunasan sisa tagihan sebesar ${formatRupiah(item.sisaBayar)} untuk pesanan ${item.pelanggan} (${item.metodeAmbil})?`)) return;
+
+    const sisaYangDibayar = item.sisaBayar;
+
+    dbPreorder.child(idKey).update({
+        sisaBayar: 0,
+        statusPembayaran: "LUNAS (100%)",
+        status: "Selesai",
+        lastEditedBy: currentRole,
+        lockedByOwner: (currentRole === "Pemilik") ? true : item.lockedByOwner
+    });
+
+    // Catat Pelunasan ke Riwayat Transaksi Kasir
+    dbRiwayat.push({
+        tanggal: new Date().toLocaleString("id-ID"),
+        barang: `[Pelunasan PO - ${item.metodeAmbil}] ${item.barang} (${item.pelanggan})`,
+        jumlah: item.jumlah,
+        total: sisaYangDibayar,
+        kasir: currentRole || "Kasir"
+    });
+
+    alert("Pelunasan berhasil dicatat ke Riwayat Transaksi dan status PO diubah menjadi Selesai!");
+}
+
 function ubahStatus(idKey, statusBaru) {
     const item = preorder.find(p => p.idKey === idKey);
     if (!item) return;
 
-    // Validasi keamanan: Kasir dilarang mengubah PO yang sudah dikunci Pemilik
     if (currentRole === "Kasir" && item.lockedByOwner === true) {
         alert("Akses Ditolak! Status pesanan ini sudah ditetapkan dan dikunci oleh Pemilik.");
         tampilkanPreOrder();
         return;
     }
 
-    // Jika diubah oleh Pemilik, otomatis aktifkan kunci status
     const kunciStatus = (currentRole === "Pemilik") ? true : false;
 
     dbPreorder.child(idKey).update({
@@ -579,7 +756,6 @@ function ubahStatus(idKey, statusBaru) {
 }
 
 function hapusPreOrder(idKey) {
-    // Validasi ketat: Hanya Pemilik yang boleh menghapus data PO dari database
     if (currentRole !== "Pemilik") {
         alert("Akses Ditolak! Hanya Pemilik yang berwenang menghapus data pesanan Pre-Order.");
         return;
