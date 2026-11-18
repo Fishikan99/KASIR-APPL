@@ -12,7 +12,7 @@
 </head>
 <body>
 
-    <!-- MODAL LOGIN PIN AMAN (TANPA BOCORAN PIN & TERSEMBUNYI) -->
+    <!-- MODAL LOGIN PIN AMAN -->
     <div id="loginModal" class="modal-overlay">
         <div class="modal-box">
             <h2 style="margin-top: 0;">Verifikasi Akses KasirPO</h2>
@@ -100,21 +100,23 @@
         </section>
 
         <!-- PRE-ORDER MONITORING -->
-        <section id="preorder" class="page" style="display:none;">
+        <section id="preorder" class="page" style="display:none; max-width: 1150px;">
             <h2>Daftar Pesanan Pre-Order (Pelanggan)</h2>
-            <p><i>Data pesanan yang diisi pelanggan dari web publik akan otomatis masuk di sini secara real-time. Pesanan yang diubah oleh Pemilik otomatis terkunci dari perubahan Kasir.</i></p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Pelanggan</th>
-                        <th>Barang</th>
-                        <th>Jumlah</th>
-                        <th>Tanggal Ambil (Prioritas)</th>
-                        <th>Status / Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelPreOrder"></tbody>
-            </table>
+            <p><i>Verifikasi DP QRIS dan pelunasan sisa tagihan otomatis masuk ke Riwayat Transaksi. Pesanan yang diubah oleh Pemilik otomatis terkunci dari perubahan Kasir.</i></p>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pelanggan & Pengiriman</th>
+                            <th>Pesanan</th>
+                            <th>Rincian DP & Sisa</th>
+                            <th>Tanggal Ambil</th>
+                            <th>Status & Pelunasan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelPreOrder"></tbody>
+                </table>
+            </div>
         </section>
 
         <!-- RIWAYAT -->
