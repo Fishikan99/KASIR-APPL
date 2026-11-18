@@ -79,7 +79,7 @@ button {
 }
 
 nav button:hover, button:hover {
-    opacity: 0.8;
+    opacity: 0.85;
 }
 
 button:disabled, select:disabled {
@@ -104,11 +104,20 @@ button:disabled, select:disabled {
     margin-bottom: 15px;
 }
 
-input, select {
+input, select, textarea {
     padding: 10px;
     margin: 5px 0;
     border: 1px solid #ccc;
     border-radius: 6px;
+}
+
+/* KOTAK QRIS PELANGGAN */
+.qris-box {
+    background-color: #f8f9fa;
+    border: 1px solid #dce1e5;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 8px;
 }
 
 /* TABEL */
