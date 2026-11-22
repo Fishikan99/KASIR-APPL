@@ -104,6 +104,29 @@ button:disabled, select:disabled {
     margin-bottom: 15px;
 }
 
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 12px;
+    margin-bottom: 15px;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.form-grid label {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 4px;
+    color: #333;
+}
+
+.form-grid input {
+    width: 100%;
+    margin: 0;
+}
+
 input, select, textarea {
     padding: 10px;
     margin: 5px 0;
@@ -141,6 +164,7 @@ tr:hover {
     background-color: #fafafa;
 }
 
+/* BADGE KEAMANAN & EXPIRY (FEFO) */
 .badge-lock {
     display: inline-block;
     margin-top: 4px;
@@ -150,6 +174,39 @@ tr:hover {
     color: #b52b27;
     background-color: #fdecea;
     border: 1px solid #f5c6cb;
+    border-radius: 4px;
+}
+
+.badge-exp-danger {
+    display: inline-block;
+    margin-top: 3px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #dc3545;
+    border-radius: 4px;
+}
+
+.badge-exp-warn {
+    display: inline-block;
+    margin-top: 3px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #856404;
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    border-radius: 4px;
+}
+
+.badge-exp-ok {
+    display: inline-block;
+    margin-top: 3px;
+    padding: 2px 6px;
+    font-size: 11px;
+    color: #155724;
+    background-color: #d4edda;
     border-radius: 4px;
 }
 
