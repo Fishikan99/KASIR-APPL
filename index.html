@@ -43,38 +43,76 @@
     </nav>
 
     <main>
-        <!-- KELOLA BARANG -->
-        <section id="barang" class="page">
-            <h2>Kelola Barang Toko</h2>
-            <div class="form">
-                <input type="text" id="namaBarang" placeholder="Nama Barang">
-                <input type="number" id="hargaBarang" placeholder="Harga">
-                <input type="number" id="stokBarang" placeholder="Stok">
-                <button onclick="tambahBarang()">Tambah Barang</button>
+        <!-- KELOLA BARANG (BATCH INVENTORY) -->
+        <section id="barang" class="page" style="max-width: 1150px;">
+            <h2>Kelola Master Data Barang (Berbasis Batch)</h2>
+            <p style="font-size: 13px; color: #555; margin-top: -10px;">
+                <i>*Jika produk memiliki tanggal produksi/expired berbeda, tambahkan sebagai entri baru dengan Kode Batch berbeda (mendukung prinsip FEFO).</i>
+            </p>
+            
+            <div class="form-grid">
+                <div>
+                    <label><b>Kode Barang / Batch:</b></label>
+                    <input type="text" id="kodeBarang" placeholder="Contoh: BRG-001A">
+                </div>
+                <div>
+                    <label><b>Nama Produk:</b></label>
+                    <input type="text" id="namaBarang" placeholder="Contoh: Sambal Roa">
+                </div>
+                <div>
+                    <label><b>Berat Bersih / Netto:</b></label>
+                    <input type="text" id="beratBarang" placeholder="Contoh: 250 gr / 1 kg">
+                </div>
+                <div>
+                    <label><b>Tanggal Produksi:</b></label>
+                    <input type="date" id="tglProduksi">
+                </div>
+                <div>
+                    <label><b>Tanggal Expired:</b></label>
+                    <input type="date" id="tglExpired">
+                </div>
+                <div>
+                    <label><b>Harga Satuan (Rp):</b></label>
+                    <input type="number" id="hargaBarang" placeholder="Contoh: 35000">
+                </div>
+                <div>
+                    <label><b>Stok Batch:</b></label>
+                    <input type="number" id="stokBarang" placeholder="Contoh: 20">
+                </div>
+                <div style="display: flex; align-items: flex-end;">
+                    <button onclick="tambahBarang()" style="width: 100%; background-color: #28a745; padding: 11px; font-weight: bold;">+ Tambah Batch Barang</button>
+                </div>
             </div>
-            <br>
-            <input type="text" id="cariBarang" placeholder="Cari barang..." oninput="cariBarang()">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nama Barang</th>
-                        <th>Harga</th>
-                        <th>Stok</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelBarang"></tbody>
-            </table>
+
+            <input type="text" id="cariBarang" placeholder="Cari berdasarkan kode batch atau nama produk..." oninput="cariBarang()" style="width: 100%; max-width: 400px; margin-top: 10px;">
+            
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Kode Batch</th>
+                            <th>Nama Produk</th>
+                            <th>Berat Bersih</th>
+                            <th>Tgl Produksi</th>
+                            <th>Tgl Expired (FEFO)</th>
+                            <th>Harga</th>
+                            <th>Stok</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelBarang"></tbody>
+                </table>
+            </div>
         </section>
 
         <!-- TRANSAKSI -->
         <section id="transaksi" class="page" style="display:none;">
             <h2>Transaksi Kasir</h2>
             <div class="form">
-                <select id="pilihBarang">
-                    <option value="">-- Pilih Barang --</option>
+                <select id="pilihBarang" style="flex: 1; min-width: 280px;">
+                    <option value="">-- Pilih Batch Barang (Urut Expired Terdekat) --</option>
                 </select>
-                <input type="number" id="jumlahBarang" value="1" min="1">
+                <input type="number" id="jumlahBarang" value="1" min="1" style="width: 100px;">
                 <button onclick="tambahKeranjang()">Tambah ke Keranjang</button>
             </div>
 
@@ -82,7 +120,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Barang</th>
+                        <th>Kode & Produk</th>
                         <th>Jumlah</th>
                         <th>Subtotal</th>
                         <th>Aksi</th>
