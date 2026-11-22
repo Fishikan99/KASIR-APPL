@@ -182,7 +182,7 @@ dbRiwayat.on("value", snapshot => {
 });
 
 // ===============================
-// HELPER FORMAT RUPIAH & PAGE NAVIGATION
+// HELPER FORMAT RUPIAH, TANGGAL & NAVIGATION
 // ===============================
 function formatRupiah(angka) {
     return "Rp " + Number(angka || 0).toLocaleString("id-ID");
@@ -196,30 +196,95 @@ function showPage(pageId) {
     if (targetPage) targetPage.style.display = "block";
 }
 
+function cekStatusExpired(tglExpired) {
+    if (!tglExpired) return `<span style="color:#666;">-</span>`;
+
+    const hariIni = new Date();
+    hariIni.setHours(0, 0, 0, 0);
+    const expDate = new Date(tglExpired);
+    expDate.setHours(0, 0, 0, 0);
+
+    const selisihHari = Math.ceil((expDate - hariIni) / (1000 * 60 * 60 * 24));
+
+    if (selisihHari < 0) {
+        return `<b>${tglExpired}</b><br><span class="badge-exp-danger">⚠️ KADALUWARSA</span>`;
+    } else if (selisihHari <= 14) {
+        return `<b>${tglExpired}</b><br><span class="badge-exp-warn">⏳ Sisa ${selisihHari} hari</span>`;
+    } else {
+        return `<b>${tglExpired}</b><br><span class="badge-exp-ok">✔ Aman</span>`;
+    }
+}
+
 // ===============================
-// KELOLA BARANG (ADMIN / PEMILIK)
+// KELOLA BARANG BERBASIS BATCH (ADMIN / PEMILIK)
 // ===============================
 
 function tambahBarang() {
+    const kode = document.getElementById("kodeBarang").value.trim().toUpperCase();
     const nama = document.getElementById("namaBarang").value.trim();
+    const berat = document.getElementById("beratBarang").value.trim();
+    const tglProduksi = document.getElementById("tglProduksi").value;
+    const tglExpired = document.getElementById("tglExpired").value;
     const harga = Number(document.getElementById("hargaBarang").value);
     const stok = Number(document.getElementById("stokBarang").value);
 
-    if (nama === "" || isNaN(harga) || harga <= 0 || isNaN(stok) || stok < 0) {
-        alert("Data barang belum lengkap atau format angka salah!");
+    if (kode === "" || nama === "" || berat === "" || tglProduksi === "" || tglExpired === "" || isNaN(harga) || harga <= 0 || isNaN(stok) || stok < 0) {
+        alert("Mohon lengkapi seluruh atribut barang (Kode Batch, Nama Produk, Berat Bersih, Tgl Produksi, Tgl Expired, Harga, dan Stok)!");
+        return;
+    }
+
+    if (tglExpired < tglProduksi) {
+        alert("Tanggal Expired tidak boleh lebih awal dari Tanggal Produksi!");
+        return;
+    }
+
+    // Pastikan Kode Batch tidak duplikat
+    const kodeDuplikat = barang.find(b => (b.kode || "").toUpperCase() === kode);
+    if (kodeDuplikat) {
+        alert(`Kode Batch "${kode}" sudah digunakan pada produk "${kodeDuplikat.nama}"!\nGunakan kode batch baru (misal: ${kode}-B) untuk membedakan tanggal produksi/expired.`);
         return;
     }
 
     dbBarang.push({
+        kode: kode,
         nama: nama,
+        berat: berat,
+        tglProduksi: tglProduksi,
+        tglExpired: tglExpired,
         harga: harga,
         stok: stok
     }).then(() => {
+        document.getElementById("kodeBarang").value = "";
         document.getElementById("namaBarang").value = "";
+        document.getElementById("beratBarang").value = "";
+        document.getElementById("tglProduksi").value = "";
+        document.getElementById("tglExpired").value = "";
         document.getElementById("hargaBarang").value = "";
         document.getElementById("stokBarang").value = "";
-        alert("Barang berhasil ditambahkan!");
+        alert("Batch barang berhasil ditambahkan!");
     });
+}
+
+function renderBarisBarang(item, isPemilik) {
+    const tombolHapusHTML = isPemilik
+        ? `<button onclick="hapusBarang('${item.idKey}')" style="background-color: #dc3545; color: white;">Hapus</button>`
+        : "";
+
+    return `
+        <tr>
+            <td><b>${item.kode || "-"}</b></td>
+            <td>${item.nama}</td>
+            <td>${item.berat || "-"}</td>
+            <td>${item.tglProduksi || "-"}</td>
+            <td>${cekStatusExpired(item.tglExpired)}</td>
+            <td>${formatRupiah(item.harga)}</td>
+            <td><b>${item.stok}</b></td>
+            <td>
+                <button onclick="editBarang('${item.idKey}')">Edit</button>
+                ${tombolHapusHTML}
+            </td>
+        </tr>
+    `;
 }
 
 function tampilkanBarang() {
@@ -227,24 +292,12 @@ function tampilkanBarang() {
     if (!tbody) return;
 
     const isPemilik = (currentRole === "Pemilik");
+    // Urutkan berdasarkan tanggal expired terdekat (FEFO)
+    const barangSorted = [...barang].sort((a, b) => new Date(a.tglExpired || "2099-12-31") - new Date(b.tglExpired || "2099-12-31"));
 
     let html = "";
-    barang.forEach(item => {
-        const tombolHapusHTML = isPemilik
-            ? `<button onclick="hapusBarang('${item.idKey}')" style="background-color: #dc3545; color: white;">Hapus</button>`
-            : "";
-
-        html += `
-            <tr>
-                <td>${item.nama}</td>
-                <td>${formatRupiah(item.harga)}</td>
-                <td>${item.stok}</td>
-                <td>
-                    <button onclick="editBarang('${item.idKey}')">Edit</button>
-                    ${tombolHapusHTML}
-                </td>
-            </tr>
-        `;
+    barangSorted.forEach(item => {
+        html += renderBarisBarang(item, isPemilik);
     });
     tbody.innerHTML = html;
 }
@@ -253,24 +306,36 @@ function editBarang(idKey) {
     const item = barang.find(b => b.idKey === idKey);
     if (!item) return;
 
-    const namaBaru = prompt("Nama barang:", item.nama);
+    const kodeBaru = prompt("Kode Barang / Batch:", item.kode || "");
+    if (kodeBaru === null) return;
+    const namaBaru = prompt("Nama Produk:", item.nama);
     if (namaBaru === null) return;
-    const hargaBaru = prompt("Harga barang:", item.harga);
+    const beratBaru = prompt("Berat Bersih (Netto):", item.berat || "");
+    if (beratBaru === null) return;
+    const prodBaru = prompt("Tanggal Produksi (YYYY-MM-DD):", item.tglProduksi || "");
+    if (prodBaru === null) return;
+    const expBaru = prompt("Tanggal Expired (YYYY-MM-DD):", item.tglExpired || "");
+    if (expBaru === null) return;
+    const hargaBaru = prompt("Harga Satuan:", item.harga);
     if (hargaBaru === null) return;
-    const stokBaru = prompt("Stok barang:", item.stok);
+    const stokBaru = prompt("Stok Batch:", item.stok);
     if (stokBaru === null) return;
 
-    if (namaBaru.trim() === "" || Number(hargaBaru) <= 0 || Number(stokBaru) < 0) {
+    if (kodeBaru.trim() === "" || namaBaru.trim() === "" || Number(hargaBaru) <= 0 || Number(stokBaru) < 0) {
         alert("Data tidak valid!");
         return;
     }
 
     dbBarang.child(idKey).update({
+        kode: kodeBaru.trim().toUpperCase(),
         nama: namaBaru.trim(),
+        berat: beratBaru.trim(),
+        tglProduksi: prodBaru.trim(),
+        tglExpired: expBaru.trim(),
         harga: Number(hargaBaru),
         stok: Number(stokBaru)
     });
-    alert("Barang berhasil diubah!");
+    alert("Data batch barang berhasil diperbarui!");
 }
 
 function hapusBarang(idKey) {
@@ -278,9 +343,9 @@ function hapusBarang(idKey) {
         alert("Akses Ditolak! Hanya Pemilik yang dapat menghapus master barang.");
         return;
     }
-    if (!confirm("Yakin ingin menghapus barang ini?")) return;
+    if (!confirm("Yakin ingin menghapus batch barang ini?")) return;
     dbBarang.child(idKey).remove();
-    alert("Barang berhasil dihapus!");
+    alert("Batch barang berhasil dihapus!");
 }
 
 function cariBarang() {
@@ -289,45 +354,41 @@ function cariBarang() {
     if (!tbody) return;
 
     const isPemilik = (currentRole === "Pemilik");
+    const barangFiltered = barang.filter(item =>
+        item.nama.toLowerCase().includes(keyword) ||
+        (item.kode && item.kode.toLowerCase().includes(keyword))
+    );
 
     let html = "";
-    barang.filter(item => item.nama.toLowerCase().includes(keyword)).forEach(item => {
-        const tombolHapusHTML = isPemilik
-            ? `<button onclick="hapusBarang('${item.idKey}')" style="background-color: #dc3545; color: white;">Hapus</button>`
-            : "";
-
-        html += `
-            <tr>
-                <td>${item.nama}</td>
-                <td>${formatRupiah(item.harga)}</td>
-                <td>${item.stok}</td>
-                <td>
-                    <button onclick="editBarang('${item.idKey}')">Edit</button>
-                    ${tombolHapusHTML}
-                </td>
-            </tr>
-        `;
+    barangFiltered.forEach(item => {
+        html += renderBarisBarang(item, isPemilik);
     });
     tbody.innerHTML = html;
 }
 
 // ===============================
-// TRANSAKSI KASIR & SMART DISCOUNT
+// TRANSAKSI KASIR (FEFO SORTED) & SMART DISCOUNT
 // ===============================
 
 function updateSelectBarang() {
     const select = document.getElementById("pilihBarang");
     if (!select) return;
 
-    let html = `<option value="">-- Pilih Barang --</option>`;
-    barang.forEach(item => {
-        if (item.stok > 0) {
-            html += `
-                <option value="${item.idKey}">
-                    ${item.nama} - ${formatRupiah(item.harga)} (Stok: ${item.stok})
-                </option>
-            `;
-        }
+    // Urutkan pilihan di kasir berdasarkan FEFO (Expired terdekat di urutan atas)
+    const barangTersedia = [...barang]
+        .filter(item => item.stok > 0)
+        .sort((a, b) => new Date(a.tglExpired || "2099-12-31") - new Date(b.tglExpired || "2099-12-31"));
+
+    let html = `<option value="">-- Pilih Batch Barang (Urut Expired Terdekat) --</option>`;
+    barangTersedia.forEach(item => {
+        const labelKode = item.kode ? `[${item.kode}] ` : "";
+        const labelBerat = item.berat ? ` (${item.berat})` : "";
+        const labelExp = item.tglExpired ? ` | Exp: ${item.tglExpired}` : "";
+        html += `
+            <option value="${item.idKey}">
+                ${labelKode}${item.nama}${labelBerat}${labelExp} - ${formatRupiah(item.harga)} (Stok: ${item.stok})
+            </option>
+        `;
     });
     select.innerHTML = html;
 }
@@ -337,16 +398,18 @@ function tambahKeranjang() {
     const jumlah = Number(document.getElementById("jumlahBarang").value);
     const item = barang.find(b => b.idKey === idKey);
 
-    if (!item) { alert("Pilih barang terlebih dahulu!"); return; }
+    if (!item) { alert("Pilih batch barang terlebih dahulu!"); return; }
     if (jumlah <= 0) { alert("Jumlah barang harus > 0!"); return; }
-    if (jumlah > item.stok) { alert("Stok barang tidak cukup!"); return; }
+    if (jumlah > item.stok) { alert("Stok batch barang tidak cukup!"); return; }
+
+    const labelLengkap = `${item.kode ? '[' + item.kode + '] ' : ''}${item.nama}${item.berat ? ' (' + item.berat + ')' : ''}`;
 
     const sudahAda = keranjang.find(k => k.idKey === idKey);
     if (sudahAda) {
-        if (sudahAda.jumlah + jumlah > item.stok) { alert("Jumlah melebihi stok!"); return; }
+        if (sudahAda.jumlah + jumlah > item.stok) { alert("Jumlah melebihi stok batch!"); return; }
         sudahAda.jumlah += jumlah;
     } else {
-        keranjang.push({ idKey: item.idKey, nama: item.nama, harga: item.harga, jumlah: jumlah });
+        keranjang.push({ idKey: item.idKey, nama: labelLengkap, harga: item.harga, jumlah: jumlah });
     }
 
     tampilkanKeranjang();
@@ -448,7 +511,8 @@ function updateSelectBarangPO() {
 
     let html = `<option value="">-- Pilih Produk Katalog / Input Manual --</option>`;
     barang.forEach(item => {
-        html += `<option value="${item.idKey}">${item.nama} (${formatRupiah(item.harga)})</option>`;
+        const labelBerat = item.berat ? ` (${item.berat})` : "";
+        html += `<option value="${item.idKey}">${item.nama}${labelBerat} - ${formatRupiah(item.harga)}</option>`;
     });
     select.innerHTML = html;
 }
@@ -462,7 +526,8 @@ function pilihProdukPO() {
     const inputHarga = document.getElementById("hargaSatuanPO");
 
     if (item) {
-        inputNama.value = item.nama;
+        const labelBerat = item.berat ? ` (${item.berat})` : "";
+        inputNama.value = `${item.nama}${labelBerat}`;
         inputHarga.value = item.harga;
     } else {
         inputNama.value = "";
@@ -562,16 +627,19 @@ function tambahPreOrderPelanggan() {
 
     const sisaBayar = totalHarga - nominalDP;
 
-    // [FR-09] SMART PO STOCK CHECK & ALERT
-    const itemDitemukan = barang.find(b => b.nama.toLowerCase() === barangPO.toLowerCase());
+    // [FR-09] SMART PO STOCK CHECK (Jumlahkan seluruh batch produk yang cocok)
+    const namaBersih = barangPO.split("(")[0].trim().toLowerCase();
+    const totalStokProduk = barang
+        .filter(b => b.nama.toLowerCase().includes(namaBersih))
+        .reduce((acc, b) => acc + Number(b.stok || 0), 0);
 
-    if (!itemDitemukan) {
-        alert(`[Smart Alert] Barang "${barangPO}" belum terdaftar di stok toko.\nPesanan tetap dicatat & memerlukan pengadaan/restok baru!`);
-    } else if (itemDitemukan.stok < jumlah) {
-        const kekurangan = jumlah - itemDitemukan.stok;
-        alert(`[Smart Alert] Stok toko tidak mencukupi!\nStok toko: ${itemDitemukan.stok}\nJumlah PO: ${jumlah}\nKekurangan: ${kekurangan} item (Membutuhkan restok).`);
+    if (totalStokProduk === 0) {
+        alert(`[Smart Alert] Stok untuk "${barangPO}" saat ini 0 / belum tersedia.\nPesanan tetap dicatat & memerlukan produksi/restok baru!`);
+    } else if (totalStokProduk < jumlah) {
+        const kekurangan = jumlah - totalStokProduk;
+        alert(`[Smart Alert] Total stok seluruh batch tidak mencukupi!\nStok tersedia: ${totalStokProduk}\nJumlah PO: ${jumlah}\nKekurangan: ${kekurangan} item.`);
     } else {
-        alert(`[Smart Alert] Stok toko tersedia! (${itemDitemukan.stok} unit siap untuk dialokasikan).`);
+        alert(`[Smart Alert] Stok tersedia! (${totalStokProduk} unit siap dari batch toko).`);
     }
 
     dbPreorder.push({
@@ -646,7 +714,6 @@ function tampilkanPreOrder() {
             </div>
         `;
 
-        // Tombol Verifikasi DP & Pelunasan Sisa
         let tombolKeuanganHTML = "";
         if (!item.dpTerverifikasi && nominalDP > 0) {
             tombolKeuanganHTML += `<button onclick="verifikasiDP('${item.idKey}')" style="background-color: #17a2b8; font-size: 12px; padding: 6px 10px;">✔ Terima DP (${formatRupiah(nominalDP)})</button><br>`;
@@ -654,7 +721,6 @@ function tampilkanPreOrder() {
             tombolKeuanganHTML += `<button onclick="lunasiSisaPO('${item.idKey}')" style="background-color: #28a745; font-size: 12px; padding: 6px 10px;">💰 Lunasi Sisa (${formatRupiah(sisaBayar)})</button><br>`;
         }
 
-        // Tombol Hapus PO hanya muncul untuk Pemilik
         const tombolHapusHTML = isPemilik
             ? `<button onclick="hapusPreOrder('${item.idKey}')" style="background-color: #dc3545; color: white; font-size: 12px; padding: 6px 10px;">Hapus</button>`
             : "";
@@ -696,7 +762,6 @@ function verifikasiDP(idKey) {
         lastEditedBy: currentRole
     });
 
-    // Catat DP ke Riwayat Transaksi Kasir
     dbRiwayat.push({
         tanggal: new Date().toLocaleString("id-ID"),
         barang: `[DP PO] ${item.barang} (${item.pelanggan})`,
@@ -724,7 +789,6 @@ function lunasiSisaPO(idKey) {
         lockedByOwner: (currentRole === "Pemilik") ? true : item.lockedByOwner
     });
 
-    // Catat Pelunasan ke Riwayat Transaksi Kasir
     dbRiwayat.push({
         tanggal: new Date().toLocaleString("id-ID"),
         barang: `[Pelunasan PO - ${item.metodeAmbil}] ${item.barang} (${item.pelanggan})`,
