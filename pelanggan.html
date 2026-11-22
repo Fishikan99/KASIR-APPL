@@ -26,14 +26,14 @@
                 <label for="namaPelanggan"><b>Nama Lengkap Anda:</b></label>
                 <input type="text" id="namaPelanggan" placeholder="Masukkan Nama Lengkap">
 
-                <label for="pilihBarangPO"><b>Pilih Barang dari Katalog Toko:</b></label>
+                <label for="pilihBarangPO"><b>Pilih Produk dari Katalog Toko:</b></label>
                 <select id="pilihBarangPO" onchange="pilihProdukPO()">
                     <option value="">-- Pilih Produk Katalog / Pesanan Custom --</option>
                 </select>
 
                 <div id="boxCustomPO">
-                    <label for="barangPreOrder"><b>Nama Barang / Pesanan:</b></label>
-                    <input type="text" id="barangPreOrder" placeholder="Contoh: Kemeja Custom L" style="width: 100%;">
+                    <label for="barangPreOrder"><b>Nama Produk & Berat Bersih:</b></label>
+                    <input type="text" id="barangPreOrder" placeholder="Contoh: Sambal Roa (250 gr)" style="width: 100%;">
                     
                     <label for="hargaSatuanPO" style="display: block; margin-top: 8px;"><b>Harga Satuan (Rp):</b></label>
                     <input type="number" id="hargaSatuanPO" placeholder="Masukkan harga satuan barang" oninput="hitungRingkasanPO()" style="width: 100%;">
