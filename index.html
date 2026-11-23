@@ -30,21 +30,21 @@
         <div class="header-brand">
             <div class="avatar-badge">KP</div>
             <div>
-                <h1>KasirPO Workspace</h1>
-                <p>Smart Pre-Order & Cashier Management System</p>
+                <h1>KASIRPO (PEMILIK & KASIR POS)</h1>
+                <p>Sistem Kasir dan Smart Pre-Order Management</p>
             </div>
         </div>
         <div class="role-bar">
-            <span>Role Aktif: <b id="roleAktif" style="color: #4f46e5;">BELUM LOGIN</b></span>
-            <button id="btnUbahPin" onclick="ubahPinPemilik()" style="display: none; padding: 6px 12px; font-size: 12px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 700; border-radius: 999px;">Ubah PIN</button>
-            <button onclick="gantiAkun()" style="padding: 6px 12px; font-size: 12px; border-radius: 999px;">Ganti Akun</button>
+            <span>Login sebagai: <b id="roleAktif" class="role-badge-text">BELUM LOGIN</b></span>
+            <button id="btnUbahPin" onclick="ubahPinPemilik()" class="btn-ubah-pin" style="display: none;">Ubah PIN</button>
+            <button onclick="gantiAkun()" style="padding: 6px 14px; font-size: 12px; border-radius: 999px;">Ganti Akun</button>
         </div>
     </header>
 
     <nav>
-        <button onclick="showPage('barang')">📦 Master Barang</button>
-        <button onclick="showPage('transaksi')">💳 Transaksi Kasir</button>
-        <button onclick="showPage('preorder')">📋 Monitoring PO</button>
+        <button onclick="showPage('barang')">📦 Barang</button>
+        <button onclick="showPage('transaksi')">💳 Transaksi</button>
+        <button onclick="showPage('preorder')">📋 Monitoring Pre-Order</button>
         <button onclick="showPage('riwayat')">🕒 Riwayat Transaksi</button>
     </nav>
 
@@ -53,7 +53,7 @@
         <section id="barang" class="page">
             <h2>Kelola Master Data Barang (Berbasis Batch)</h2>
             <p style="font-size: 13px; color: #64748b; margin-top: -8px;">
-                <i>*Produk dengan tanggal produksi/expired berbeda dicatat sebagai entri baru dengan Kode Batch terpisah (prinsip FEFO).</i>
+                <i>*Jika produk memiliki tanggal produksi/expired berbeda, tambahkan sebagai entri baru dengan Kode Batch berbeda (mendukung prinsip FEFO).</i>
             </p>
             
             <div class="form-grid">
@@ -122,7 +122,7 @@
                 <button onclick="tambahKeranjang()">+ Tambah ke Keranjang</button>
             </div>
 
-            <h3>Keranjang Belanja</h3>
+            <h3>Keranjang</h3>
             <div style="overflow-x: auto;">
                 <table>
                     <thead>
@@ -139,17 +139,17 @@
 
             <div class="aurora-summary-card" style="margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
                 <div>
-                    <span style="font-size: 13px; color: #64748b; font-weight: 600;">Total Tagihan Belanja</span>
+                    <span style="font-size: 13px; color: #64748b; font-weight: 600;">Total Tagihan</span>
                     <div id="total" class="aurora-amount">Rp 0</div>
                 </div>
                 <div style="text-align: right;">
-                    <span style="font-size: 13px; color: #64748b; font-weight: 600;">Uang Kembalian</span>
+                    <span style="font-size: 13px; color: #64748b; font-weight: 600;">Kembalian</span>
                     <div id="kembalian" style="font-size: 20px; font-weight: 800; color: #059669;">Rp 0</div>
                 </div>
             </div>
 
             <div class="form">
-                <input type="number" id="pembayaran" placeholder="Masukkan nominal pembayaran (Rp)" style="flex: 1; min-width: 220px;">
+                <input type="number" id="pembayaran" placeholder="Jumlah pembayaran" style="flex: 1; min-width: 220px;">
                 <button onclick="bayar()" style="background: linear-gradient(135deg, #10b981, #059669); padding: 12px 24px; font-weight: 700;">Bayar & Selesai</button>
             </div>
         </section>
