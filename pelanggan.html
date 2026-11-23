@@ -12,76 +12,104 @@
 </head>
 <body>
 
-    <header>
-        <h1>KASIRPO ONLINE</h1>
-        <p>Formulir Pre-Order Mandiri Pelanggan</p>
+    <header style="max-width: 620px; justify-content: center; text-align: center;">
+        <div class="header-brand" style="flex-direction: column; text-align: center;">
+            <div class="avatar-badge">PO</div>
+            <div>
+                <h1>KasirPO Online</h1>
+                <p>Formulir Pre-Order Mandiri Customer</p>
+            </div>
+        </div>
     </header>
 
     <main>
-        <section class="page" style="max-width: 620px; margin: 20px auto;">
+        <section class="page" style="max-width: 620px;">
             <h2>Form Pre-Order Barang</h2>
-            <p>Silakan isi detail pesanan dan pembayaran DP minimal 50% di bawah ini:</p>
+            <p style="font-size: 13.5px; color: #64748b; margin-top: -8px;">Silakan isi detail pesanan dan pembayaran DP minimal 50% di bawah ini:</p>
 
-            <div class="form" style="display: flex; flex-direction: column; gap: 10px;">
-                <label for="namaPelanggan"><b>Nama Lengkap Anda:</b></label>
-                <input type="text" id="namaPelanggan" placeholder="Masukkan Nama Lengkap">
-
-                <label for="pilihBarangPO"><b>Pilih Produk dari Katalog Toko:</b></label>
-                <select id="pilihBarangPO" onchange="pilihProdukPO()">
-                    <option value="">-- Pilih Produk Katalog / Pesanan Custom --</option>
-                </select>
-
-                <div id="boxCustomPO">
-                    <label for="barangPreOrder"><b>Nama Produk & Berat Bersih:</b></label>
-                    <input type="text" id="barangPreOrder" placeholder="Contoh: Sambal Roa (250 gr)" style="width: 100%;">
-                    
-                    <label for="hargaSatuanPO" style="display: block; margin-top: 8px;"><b>Harga Satuan (Rp):</b></label>
-                    <input type="number" id="hargaSatuanPO" placeholder="Masukkan harga satuan barang" oninput="hitungRingkasanPO()" style="width: 100%;">
+            <div class="form" style="display: flex; flex-direction: column; gap: 12px;">
+                <div>
+                    <label for="namaPelanggan">Nama Lengkap Anda:</label>
+                    <input type="text" id="namaPelanggan" placeholder="Masukkan Nama Lengkap" style="width: 100%;">
                 </div>
 
-                <label for="jumlahPreOrder"><b>Jumlah Pesanan:</b></label>
-                <input type="number" id="jumlahPreOrder" value="1" min="1" oninput="hitungRingkasanPO()">
+                <div>
+                    <label for="pilihBarangPO">Pilih Produk dari Katalog Toko:</label>
+                    <select id="pilihBarangPO" onchange="pilihProdukPO()" style="width: 100%;">
+                        <option value="">-- Pilih Produk Katalog / Pesanan Custom --</option>
+                    </select>
+                </div>
+
+                <div id="boxCustomPO" class="form-grid" style="margin-bottom: 0;">
+                    <div>
+                        <label for="barangPreOrder">Nama Produk & Berat Bersih:</label>
+                        <input type="text" id="barangPreOrder" placeholder="Contoh: Sambal Roa (250 gr)" style="width: 100%;">
+                    </div>
+                    <div>
+                        <label for="hargaSatuanPO">Harga Satuan (Rp):</label>
+                        <input type="number" id="hargaSatuanPO" placeholder="Harga satuan barang" oninput="hitungRingkasanPO()" style="width: 100%;">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="jumlahPreOrder">Jumlah Pesanan:</label>
+                    <input type="number" id="jumlahPreOrder" value="1" min="1" oninput="hitungRingkasanPO()" style="width: 100%;">
+                </div>
 
                 <!-- OPSI PENGAMBILAN / PENGANTARAN -->
-                <label for="metodeAmbil"><b>Metode Pengambilan Pesanan:</b></label>
-                <select id="metodeAmbil" onchange="toggleAlamatPO()">
-                    <option value="Ambil di Toko">Ambil di Toko</option>
-                    <option value="Antar ke Alamat">Antar ke Alamat (Delivery)</option>
-                </select>
-
-                <div id="boxAlamatPO" style="display: none;">
-                    <label for="alamatPO"><b>Alamat Lengkap Pengantaran:</b></label>
-                    <textarea id="alamatPO" rows="3" placeholder="Masukkan jalan, nomor rumah, RT/RW, kelurahan/kecamatan..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit;"></textarea>
-                    <small style="color: #555;"><i>*Pelunasan sisa 50% dapat dilakukan via QRIS sebelum dikirim atau COD saat kurir tiba.</i></small>
+                <div>
+                    <label for="metodeAmbil">Metode Pengambilan Pesanan:</label>
+                    <select id="metodeAmbil" onchange="toggleAlamatPO()" style="width: 100%;">
+                        <option value="Ambil di Toko">Ambil di Toko</option>
+                        <option value="Antar ke Alamat">Antar ke Alamat (Delivery)</option>
+                    </select>
                 </div>
 
-                <label for="tanggalAmbil"><b>Tanggal Rencana Ambil / Antar:</b></label>
-                <input type="date" id="tanggalAmbil">
+                <div id="boxAlamatPO" style="display: none;">
+                    <label for="alamatPO">Alamat Lengkap Pengantaran:</label>
+                    <textarea id="alamatPO" rows="3" placeholder="Masukkan jalan, nomor rumah, RT/RW, kelurahan/kecamatan..." style="width: 100%;"></textarea>
+                    <small style="color: #64748b;"><i>*Pelunasan sisa 50% dapat dilakukan via QRIS sebelum dikirim atau COD saat kurir tiba.</i></small>
+                </div>
 
-                <button type="button" onclick="estimasiTanggalPO()" style="background-color: #007bff; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">
+                <div>
+                    <label for="tanggalAmbil">Tanggal Rencana Ambil / Antar:</label>
+                    <input type="date" id="tanggalAmbil" style="width: 100%;">
+                </div>
+
+                <button type="button" onclick="estimasiTanggalPO()" style="padding: 12px; font-weight: 700;">
                     ⚡ Hitung Estimasi Otomatis (Smart System)
                 </button>
 
                 <!-- RINGKASAN TAGIHAN & PEMBAYARAN QRIS DP MINIMAL 50% -->
                 <div class="qris-box">
-                    <h3 style="margin-top: 0; color: #2a322c;">Pembayaran DP Minimal 50% (QRIS)</h3>
-                    <p style="margin: 4px 0;">Total Harga Pesanan: <b id="infoTotalPO">Rp 0</b></p>
-                    <p style="margin: 4px 0; color: #d9534f;">Minimal DP Wajib (50%): <b id="infoMinDP">Rp 0</b></p>
-                    <p style="margin: 4px 0; color: #555;">Estimasi Sisa Pelunasan: <b id="infoSisaPO">Rp 0</b></p>
-
-                    <div style="margin: 14px 0; text-align: center;">
-                        <img src="qris.png" alt="QRIS Pembayaran KasirPO" style="max-width: 230px; width: 100%; border: 2px solid #ddd; border-radius: 8px; padding: 6px; background: white;">
-                        <p style="font-size: 12px; color: #666; margin-top: 6px;">Scan kode QRIS di atas menggunakan aplikasi Mobile Banking atau E-Wallet Anda.</p>
+                    <h3 style="margin-top: 0; margin-bottom: 12px;">Pembayaran DP Minimal 50% (QRIS)</h3>
+                    
+                    <div class="aurora-summary-card">
+                        <div style="font-size: 12.5px; color: #64748b; font-weight: 600;">Total Harga Pesanan</div>
+                        <div id="infoTotalPO" class="aurora-amount">Rp 0</div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(99, 102, 241, 0.25); font-size: 13px;">
+                            <span style="color: #e11d48;">Min. DP (50%): <b id="infoMinDP">Rp 0</b></span>
+                            <span style="color: #475569;">Sisa: <b id="infoSisaPO">Rp 0</b></span>
+                        </div>
                     </div>
 
-                    <label for="nominalDP"><b>Nominal DP yang Anda Transfer (Rp):</b></label>
-                    <input type="number" id="nominalDP" placeholder="Minimal 50% dari total harga" oninput="hitungRingkasanPO()" style="width: 100%;">
+                    <div style="margin: 14px 0; text-align: center;">
+                        <img src="qris.png" alt="QRIS Pembayaran KasirPO" style="max-width: 220px; width: 100%; border: 2px solid rgba(99, 102, 241, 0.2); border-radius: 18px; padding: 8px; background: white; box-shadow: 0 8px 20px rgba(0,0,0,0.06);">
+                        <p style="font-size: 12px; color: #64748b; margin-top: 8px;">Scan kode QRIS di atas menggunakan aplikasi Mobile Banking atau E-Wallet Anda.</p>
+                    </div>
 
-                    <label for="pengirimQRIS" style="display: block; margin-top: 8px;"><b>Nama Pengirim / E-Wallet (Bukti Transfer):</b></label>
-                    <input type="text" id="pengirimQRIS" placeholder="Contoh: DANA - Budi Santoso" style="width: 100%;">
+                    <div style="margin-bottom: 10px;">
+                        <label for="nominalDP">Nominal DP yang Anda Transfer (Rp):</label>
+                        <input type="number" id="nominalDP" placeholder="Minimal 50% dari total harga" oninput="hitungRingkasanPO()" style="width: 100%;">
+                    </div>
+
+                    <div>
+                        <label for="pengirimQRIS">Nama Pengirim / E-Wallet (Bukti Transfer):</label>
+                        <input type="text" id="pengirimQRIS" placeholder="Contoh: DANA - Budi Santoso" style="width: 100%;">
+                    </div>
                 </div>
 
-                <button type="button" onclick="tambahPreOrderPelanggan()" style="background-color: #28a745; color: white; padding: 14px; font-weight: bold; font-size: 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px;">
+                <button type="button" onclick="tambahPreOrderPelanggan()" style="background: linear-gradient(135deg, #10b981, #059669); padding: 15px; font-weight: 700; font-size: 15px; margin-top: 6px;">
                     Kirim Pesanan & Konfirmasi DP
                 </button>
             </div>
