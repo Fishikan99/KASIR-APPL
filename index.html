@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kasir Toko - Admin & Smart POS</title>
+    <title>KasirPO - Pemilik & Kasir POS</title>
     <link rel="stylesheet" href="style.css">
     
     <!-- SDK Firebase CDN (Required for Realtime Database) -->
@@ -15,76 +15,82 @@
     <!-- MODAL LOGIN PIN AMAN -->
     <div id="loginModal" class="modal-overlay">
         <div class="modal-box">
-            <h2 style="margin-top: 0;">Verifikasi Akses KasirPO</h2>
-            <p style="font-size: 14px; color: #555;">Masukkan PIN otorisasi akun Anda:</p>
+            <div class="avatar-badge" style="margin: 0 auto 12px auto;">KP</div>
+            <h2 style="margin-top: 0; margin-bottom: 6px;">Verifikasi Akses KasirPO</h2>
+            <p style="font-size: 13.5px; color: #64748b; margin-top: 0;">Masukkan PIN otorisasi Pemilik atau Kasir:</p>
             <input type="password" id="inputPinLogin" placeholder="••••" maxlength="8" 
                    onkeypress="if(event.key === 'Enter') prosesLogin()"
-                   style="width: 100%; text-align: center; font-size: 20px; letter-spacing: 6px; margin-bottom: 14px;">
-            <button onclick="prosesLogin()" style="width: 100%; background-color: #28a745; padding: 12px; font-weight: bold; font-size: 15px;">Masuk ke Sistem</button>
-            <p id="loginError" style="color: #dc3545; font-size: 13px; margin-top: 10px; display: none;"></p>
+                   style="width: 100%; text-align: center; font-size: 22px; letter-spacing: 8px; margin-bottom: 14px;">
+            <button onclick="prosesLogin()" style="width: 100%; background: linear-gradient(135deg, #10b981, #059669); padding: 13px; font-weight: 700; font-size: 15px;">Masuk ke Sistem</button>
+            <p id="loginError" style="color: #ef4444; font-size: 13px; margin-top: 10px; display: none;"></p>
         </div>
     </div>
 
     <header>
-        <h1>KASIR TOKO (ADMIN & POS)</h1>
-        <p>Sistem Kasir dan Smart Pre-Order Management</p>
+        <div class="header-brand">
+            <div class="avatar-badge">KP</div>
+            <div>
+                <h1>KasirPO Workspace</h1>
+                <p>Smart Pre-Order & Cashier Management System</p>
+            </div>
+        </div>
         <div class="role-bar">
-            <span>Login sebagai: <b id="roleAktif" style="color: #ffd700;">BELUM LOGIN</b></span>
-            <button id="btnUbahPin" onclick="ubahPinPemilik()" style="display: none; margin-left: 10px; padding: 5px 12px; font-size: 12px; background-color: #ffc107; color: #000; font-weight: bold;">Ubah PIN</button>
-            <button onclick="gantiAkun()" style="margin-left: 6px; padding: 5px 12px; font-size: 12px; background-color: #007bff;">Ganti Akun</button>
+            <span>Role Aktif: <b id="roleAktif" style="color: #4f46e5;">BELUM LOGIN</b></span>
+            <button id="btnUbahPin" onclick="ubahPinPemilik()" style="display: none; padding: 6px 12px; font-size: 12px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 700; border-radius: 999px;">Ubah PIN</button>
+            <button onclick="gantiAkun()" style="padding: 6px 12px; font-size: 12px; border-radius: 999px;">Ganti Akun</button>
         </div>
     </header>
 
     <nav>
-        <button onclick="showPage('barang')">Barang</button>
-        <button onclick="showPage('transaksi')">Transaksi</button>
-        <button onclick="showPage('preorder')">Monitoring Pre-Order</button>
-        <button onclick="showPage('riwayat')">Riwayat Transaksi</button>
+        <button onclick="showPage('barang')">📦 Master Barang</button>
+        <button onclick="showPage('transaksi')">💳 Transaksi Kasir</button>
+        <button onclick="showPage('preorder')">📋 Monitoring PO</button>
+        <button onclick="showPage('riwayat')">🕒 Riwayat Transaksi</button>
     </nav>
 
     <main>
         <!-- KELOLA BARANG (BATCH INVENTORY) -->
-        <section id="barang" class="page" style="max-width: 1150px;">
+        <section id="barang" class="page">
             <h2>Kelola Master Data Barang (Berbasis Batch)</h2>
-            <p style="font-size: 13px; color: #555; margin-top: -10px;">
-                <i>*Jika produk memiliki tanggal produksi/expired berbeda, tambahkan sebagai entri baru dengan Kode Batch berbeda (mendukung prinsip FEFO).</i>
+            <p style="font-size: 13px; color: #64748b; margin-top: -8px;">
+                <i>*Produk dengan tanggal produksi/expired berbeda dicatat sebagai entri baru dengan Kode Batch terpisah (prinsip FEFO).</i>
             </p>
             
             <div class="form-grid">
                 <div>
-                    <label><b>Kode Barang / Batch:</b></label>
+                    <label>Kode Barang / Batch:</label>
                     <input type="text" id="kodeBarang" placeholder="Contoh: BRG-001A">
                 </div>
                 <div>
-                    <label><b>Nama Produk:</b></label>
+                    <label>Nama Produk:</label>
                     <input type="text" id="namaBarang" placeholder="Contoh: Sambal Roa">
                 </div>
                 <div>
-                    <label><b>Berat Bersih / Netto:</b></label>
+                    <label>Berat Bersih / Netto:</label>
                     <input type="text" id="beratBarang" placeholder="Contoh: 250 gr / 1 kg">
                 </div>
                 <div>
-                    <label><b>Tanggal Produksi:</b></label>
+                    <label>Tanggal Produksi:</label>
                     <input type="date" id="tglProduksi">
                 </div>
                 <div>
-                    <label><b>Tanggal Expired:</b></label>
+                    <label>Tanggal Expired:</label>
                     <input type="date" id="tglExpired">
                 </div>
                 <div>
-                    <label><b>Harga Satuan (Rp):</b></label>
+                    <label>Harga Satuan (Rp):</label>
                     <input type="number" id="hargaBarang" placeholder="Contoh: 35000">
                 </div>
                 <div>
-                    <label><b>Stok Batch:</b></label>
+                    <label>Stok Batch:</label>
                     <input type="number" id="stokBarang" placeholder="Contoh: 20">
                 </div>
                 <div style="display: flex; align-items: flex-end;">
-                    <button onclick="tambahBarang()" style="width: 100%; background-color: #28a745; padding: 11px; font-weight: bold;">+ Tambah Batch Barang</button>
+                    <button onclick="tambahBarang()" style="width: 100%; background: linear-gradient(135deg, #10b981, #059669); padding: 12px; font-weight: 700;">+ Tambah Batch Barang</button>
                 </div>
             </div>
 
-            <input type="text" id="cariBarang" placeholder="Cari berdasarkan kode batch atau nama produk..." oninput="cariBarang()" style="width: 100%; max-width: 400px; margin-top: 10px;">
+            <input type="text" id="cariBarang" placeholder="🔍 Cari berdasarkan kode batch atau nama produk..." oninput="cariBarang()" style="width: 100%; max-width: 420px; margin-top: 6px;">
             
             <div style="overflow-x: auto;">
                 <table>
@@ -113,39 +119,50 @@
                     <option value="">-- Pilih Batch Barang (Urut Expired Terdekat) --</option>
                 </select>
                 <input type="number" id="jumlahBarang" value="1" min="1" style="width: 100px;">
-                <button onclick="tambahKeranjang()">Tambah ke Keranjang</button>
+                <button onclick="tambahKeranjang()">+ Tambah ke Keranjang</button>
             </div>
 
-            <h3>Keranjang</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Kode & Produk</th>
-                        <th>Jumlah</th>
-                        <th>Subtotal</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelKeranjang"></tbody>
-            </table>
-
-            <h3>Total Tagihan: <span id="total">Rp 0</span></h3>
-            <div class="form">
-                <input type="number" id="pembayaran" placeholder="Jumlah pembayaran">
-                <button onclick="bayar()">Bayar & Selesai</button>
-            </div>
-            <h3>Kembalian: <span id="kembalian">Rp 0</span></h3>
-        </section>
-
-        <!-- PRE-ORDER MONITORING -->
-        <section id="preorder" class="page" style="display:none; max-width: 1150px;">
-            <h2>Daftar Pesanan Pre-Order (Pelanggan)</h2>
-            <p><i>Verifikasi DP QRIS dan pelunasan sisa tagihan otomatis masuk ke Riwayat Transaksi. Pesanan yang diubah oleh Pemilik otomatis terkunci dari perubahan Kasir.</i></p>
+            <h3>Keranjang Belanja</h3>
             <div style="overflow-x: auto;">
                 <table>
                     <thead>
                         <tr>
-                            <th>Pelanggan & Pengiriman</th>
+                            <th>Kode & Produk</th>
+                            <th>Jumlah</th>
+                            <th>Subtotal</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelKeranjang"></tbody>
+                </table>
+            </div>
+
+            <div class="aurora-summary-card" style="margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+                <div>
+                    <span style="font-size: 13px; color: #64748b; font-weight: 600;">Total Tagihan Belanja</span>
+                    <div id="total" class="aurora-amount">Rp 0</div>
+                </div>
+                <div style="text-align: right;">
+                    <span style="font-size: 13px; color: #64748b; font-weight: 600;">Uang Kembalian</span>
+                    <div id="kembalian" style="font-size: 20px; font-weight: 800; color: #059669;">Rp 0</div>
+                </div>
+            </div>
+
+            <div class="form">
+                <input type="number" id="pembayaran" placeholder="Masukkan nominal pembayaran (Rp)" style="flex: 1; min-width: 220px;">
+                <button onclick="bayar()" style="background: linear-gradient(135deg, #10b981, #059669); padding: 12px 24px; font-weight: 700;">Bayar & Selesai</button>
+            </div>
+        </section>
+
+        <!-- PRE-ORDER MONITORING -->
+        <section id="preorder" class="page" style="display:none;">
+            <h2>Daftar Pesanan Pre-Order (Customer)</h2>
+            <p style="font-size: 13px; color: #64748b; margin-top: -8px;"><i>Verifikasi DP QRIS dan pelunasan sisa tagihan otomatis masuk ke Riwayat Transaksi. Pesanan yang diubah oleh Pemilik otomatis terkunci dari perubahan Kasir.</i></p>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Customer & Pengiriman</th>
                             <th>Pesanan</th>
                             <th>Rincian DP & Sisa</th>
                             <th>Tanggal Ambil</th>
@@ -159,19 +176,23 @@
 
         <!-- RIWAYAT -->
         <section id="riwayat" class="page" style="display:none;">
-            <h2>Riwayat Transaksi Toko</h2>
-            <button id="btnHapusRiwayat" onclick="hapusRiwayat()" style="background-color: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-bottom: 12px;">Hapus Semua Riwayat</button>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Tanggal</th>
-                        <th>Rincian Barang</th>
-                        <th>Jumlah Item</th>
-                        <th>Total Pembayaran</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelRiwayat"></tbody>
-            </table>
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <h2 style="margin: 0;">Riwayat Transaksi Toko</h2>
+                <button id="btnHapusRiwayat" onclick="hapusRiwayat()" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 9px 16px; border-radius: 12px;">Hapus Semua Riwayat</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Rincian Barang</th>
+                            <th>Jumlah Item</th>
+                            <th>Total Pembayaran</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelRiwayat"></tbody>
+                </table>
+            </div>
         </section>
     </main>
 
