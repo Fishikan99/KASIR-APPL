@@ -3,8 +3,8 @@
 :root {
     --bg-aurora: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 35%, #d1fae5 75%, #e0f2fe 100%);
     --card-glass: rgba(255, 255, 255, 0.78);
-    --card-solid: rgba(255, 255, 255, 0.92);
-    --border-glass: rgba(255, 255, 255, 0.85);
+    --card-solid: rgba(255, 255, 255, 0.94);
+    --border-glass: rgba(255, 255, 255, 0.88);
     --primary-grad: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #3b82f6 100%);
     --mint-grad: linear-gradient(135deg, #10b981 0%, #059669 100%);
     --text-main: #1e1b4b;
@@ -96,7 +96,7 @@ header {
 
 header h1 {
     margin: 0;
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 800;
     color: var(--text-main);
     letter-spacing: -0.3px;
@@ -110,17 +110,44 @@ header p {
 }
 
 .role-bar {
-    background: rgba(255, 255, 255, 0.88);
-    border: 1px solid rgba(99, 102, 241, 0.15);
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(99, 102, 241, 0.18);
     padding: 8px 14px;
     border-radius: 999px;
     display: inline-flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
     font-size: 13px;
     color: var(--text-main);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+/* Teks Role Aktif (KASIR / PEMILIK) berwarna hitam pekat */
+.role-badge-text {
+    color: #000000 !important;
+    background: #f1f5f9;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+}
+
+/* Tombol Ubah PIN berwarna putih bersih */
+.btn-ubah-pin {
+    background: #ffffff !important;
+    color: #1e1b4b !important;
+    border: 1px solid rgba(99, 102, 241, 0.25) !important;
+    padding: 6px 14px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    border-radius: 999px !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06) !important;
+}
+
+.btn-ubah-pin:hover {
+    background: #f8fafc !important;
+    border-color: #6366f1 !important;
 }
 
 /* NAVIGASI PIL AURORA */
@@ -148,7 +175,7 @@ nav button {
     cursor: pointer;
     font-size: 13.5px;
     font-weight: 700;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.92);
     color: var(--text-main);
     transition: all 0.2s ease;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
@@ -238,7 +265,7 @@ input, select, textarea {
     margin: 2px 0;
     border: 1px solid rgba(148, 163, 184, 0.35);
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.94);
     color: var(--text-main);
     font-size: 14px;
     outline: none;
@@ -283,11 +310,11 @@ table {
     border-collapse: separate;
     border-spacing: 0;
     margin-top: 18px;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.88);
     border-radius: 18px;
     overflow: hidden;
     box-shadow: var(--shadow-card);
-    border: 1px solid rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.92);
 }
 
 th, td {
@@ -298,7 +325,7 @@ th, td {
 }
 
 th {
-    background: rgba(238, 242, 255, 0.85);
+    background: rgba(238, 242, 255, 0.88);
     color: #312e81;
     font-weight: 700;
     font-size: 13px;
